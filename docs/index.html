@@ -5,13 +5,40 @@
 <title>Game Science Dark Matter Graph</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #05070a; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+  body { background: #05070a; color: #e6edf3; font-family: 'Courier New', Courier, monospace, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
   #app { width: 100vw; height: 100vh; position: relative; display: flex; }
   canvas { position: absolute; top: 0; left: 0; z-index: 1; cursor: grab; }
   canvas:active { cursor: grabbing; }
 
-  /* 左侧边栏：图例与文献列表 */
-  #sidebar-left { width: 300px; min-width: 300px; background: rgba(8,11,16,0.85); border-right: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); }
+  /* --- 科幻级加载屏 --- */
+  #loading { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease-in-out, visibility 0.8s; }
+  
+  /* 扫描雷达环 */
+  .radar-container { position: relative; width: 180px; height: 180px; margin-bottom: 40px; }
+  .radar-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; border: 1px solid transparent; border-top-color: #58a6ff; border-bottom-color: #58a6ff; animation: spin-forward 3s linear infinite; opacity: 0.8; box-shadow: 0 0 15px rgba(88, 166, 255, 0.4), inset 0 0 15px rgba(88, 166, 255, 0.4); }
+  .radar-ring.inner { top: 15px; left: 15px; width: 150px; height: 150px; border-top-color: #e3b341; border-bottom-color: transparent; border-left-color: #e3b341; border-right-color: transparent; animation: spin-reverse 2s linear infinite; box-shadow: 0 0 10px rgba(227, 179, 65, 0.3); opacity: 0.6; }
+  .radar-ring.core { top: 35px; left: 35px; width: 110px; height: 110px; border: 2px dashed #79c0ff; animation: spin-forward 8s linear infinite; }
+  .radar-scanner { position: absolute; top: 50%; left: 50%; width: 90px; height: 2px; background: linear-gradient(90deg, transparent 0%, #58a6ff 100%); transform-origin: 0% 50%; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; box-shadow: 0 0 8px #58a6ff; }
+  
+  @keyframes spin-forward { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+  @keyframes scan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  /* 终端打字机文字 */
+  .terminal-box { width: 320px; font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #58a6ff; text-align: left; text-shadow: 0 0 5px rgba(88, 166, 255, 0.6); }
+  .terminal-line { margin: 5px 0; min-height: 18px; }
+  .blinking-cursor { display: inline-block; width: 8px; height: 14px; background-color: #58a6ff; animation: blink 1s step-end infinite; vertical-align: bottom; margin-left: 5px; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* 数据跃迁进度条 */
+  .progress-wrap { width: 320px; height: 4px; background: #161b22; margin-top: 15px; border-radius: 2px; overflow: hidden; position: relative; }
+  .progress-bar { height: 100%; width: 0%; background: #58a6ff; box-shadow: 0 0 10px #58a6ff; transition: width 0.1s linear; }
+
+  /* CRT 扫描线叠加层 */
+  #loading::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; pointer-events: none; z-index: 10; }
+
+  /* --- 主界面 UI --- */
+  #sidebar-left { width: 300px; min-width: 300px; background: rgba(8,11,16,0.85); border-right: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); font-family: -apple-system, sans-serif; }
   .sb-header { padding: 15px 20px; border-bottom: 1px solid #1f242e; font-size: 16px; font-weight: bold; color: #58a6ff; display: flex; justify-content: space-between; align-items: center; }
   #legend-list { padding: 10px 20px; border-bottom: 1px solid #1f242e; display: flex; flex-direction: column; gap: 8px; }
   .legend-item { display: flex; align-items: center; font-size: 12px; color: #8b949e; cursor: pointer; transition: 0.2s; padding: 4px; border-radius: 4px; }
@@ -23,8 +50,7 @@
   .list-title { color: #c9d1d9; margin-bottom: 8px; font-size: 13px; line-height: 1.5; white-space: normal; word-break: break-word; }
   .list-meta { color: #58a6ff; font-size: 11px; display: flex; justify-content: space-between; }
 
-  /* 右侧边栏：论文档案 (绝对常驻，不再能关闭，防止黑边) */
-  #sidebar-right { width: 360px; min-width: 360px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; }
+  #sidebar-right { width: 380px; min-width: 380px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; font-family: -apple-system, sans-serif; }
   .detail-body { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #8b949e; }
   .detail-body::-webkit-scrollbar, #paper-list::-webkit-scrollbar { width: 6px; }
   .detail-body::-webkit-scrollbar-thumb, #paper-list::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 3px; }
@@ -39,27 +65,44 @@
   .detail-text { text-align: justify; margin-bottom: 20px; }
   .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
   .detail-link-btn:hover { background: #2ea043; }
-  
-  /* 顶部全局开关：极简暗物质风，默认关闭全景标签 */
-  #top-bar { position: absolute; top: 15px; left: 320px; z-index: 150; background: rgba(13,17,23,0.85); border: 1px solid #1f242e; border-radius: 8px; padding: 8px 15px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .close-btn { background: none; border: none; color: #8b949e; font-size: 22px; cursor: pointer; }
+
+  #top-bar { position: absolute; top: 15px; left: 320px; z-index: 150; background: rgba(13,17,23,0.85); border: 1px solid #1f242e; border-radius: 8px; padding: 8px 15px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-family: -apple-system, sans-serif; }
   .toggle-label { font-size: 13px; color: #c9d1d9; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; font-weight: bold; }
   .toggle-label input { cursor: pointer; width: 16px; height: 16px; }
 
-  /* 底部图表托盘 */
-  #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #161b22; border: 1px solid #1f242e; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; }
+  #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #161b22; border: 1px solid #1f242e; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; font-family: -apple-system, sans-serif; }
   #charts-btn:hover { background: #1f242e; color: #fff; }
-  #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 360px; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); }
+  #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 380px; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); font-family: -apple-system, sans-serif; }
   #charts-tray.active { bottom: 0; }
   .chart-box { flex: 1; background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; min-width: 0; }
   .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 5px; font-weight: bold; text-align: center; }
   .chart-canvas { flex: 1; min-height: 180px; }
   
-  /* 提示框 */
-  #tooltip { position: absolute; pointer-events: none; background: rgba(13,17,23,0.95); border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #c9d1d9; display: none; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
+  #tooltip { position: absolute; pointer-events: none; background: rgba(13,17,23,0.95); border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #c9d1d9; display: none; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); font-family: -apple-system, sans-serif; }
   .tt-title { font-weight: bold; color: #e6edf3; margin-bottom: 4px; }
 </style>
 </head>
 <body>
+
+<!-- 极客科幻加载屏 -->
+<div id="loading">
+  <div class="radar-container">
+    <div class="radar-ring"></div>
+    <div class="radar-ring inner"></div>
+    <div class="radar-ring core"></div>
+    <div class="radar-scanner"></div>
+  </div>
+  <div class="terminal-box">
+    <div class="terminal-line" id="term-1">> SYS.INIT_GALAXY()</div>
+    <div class="terminal-line" id="term-2"></div>
+    <div class="terminal-line" id="term-3"></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar" id="loading-bar"></div>
+  </div>
+</div>
+
 <div id="app">
   <div id="sidebar-left">
     <div class="sb-header">
@@ -67,25 +110,23 @@
       <span style="font-size:12px; color:#8b949e; font-weight:normal;"><span id="count-n">-</span> 篇文献</span>
     </div>
     <div id="legend-list"></div>
-    <div style="padding:10px 20px; font-size:12px; color:#58a6ff; border-bottom:1px solid #1f242e; background:#0d1117; font-weight:bold;">
+    <div style="padding:10px 20px; font-size:12px; color:#58a6ff; border-bottom:1px solid #1f242e; background:#0d1117; font-weight:bold; font-family:-apple-system, sans-serif;">
       当前领域文献排行榜
     </div>
     <div id="paper-list"></div>
   </div>
 
-  <!-- 顶部全局开关：默认不勾选，保持极黑宇宙 -->
   <div id="top-bar">
     <label class="toggle-label">
       <input type="checkbox" id="global-labels-cb" onchange="render()"> 🌟 开启全景星图标签
     </label>
     <span style="color: #484f58;">|</span>
-    <span style="font-size:12px; color:#8b949e;">提示：关闭标签进入纯净暗物质模式。点击圆点激活关联脉络。</span>
+    <span style="font-size:12px; color:#8b949e; font-family:-apple-system, sans-serif;">提示：关闭标签进入纯净暗物质模式。点击圆点激活关联脉络。</span>
   </div>
 
   <canvas id="main-canvas"></canvas>
 
-  <!-- 底部图表默认展开 -->
-  <button id="charts-btn" onclick="toggleCharts()">📊 收起/展开图表</button>
+  <button id="charts-btn" onclick="toggleCharts()">📊 展开历年统计图表</button>
   <div id="charts-tray" class="active">
     <div class="chart-box">
       <div class="chart-title">历年顶会发文量趋势</div>
@@ -97,15 +138,14 @@
     </div>
   </div>
 
-  <!-- 右侧详情常驻，永不收起 -->
   <div id="sidebar-right">
     <div class="sb-header">
       <span>星系档案</span>
+      <button class="close-btn" onclick="closeDetail()">×</button>
     </div>
     <div class="detail-body">
-      <!-- 开局不再是“等待指令”，而是有一个默认主星 -->
-      <div class="detail-title" id="d-title">星图加载中...</div>
-      <div class="detail-title-en" id="d-title-en" style="color:#6e7681;">准备自动定焦核心文献。</div>
+      <div class="detail-title" id="d-title">等待观测指令...</div>
+      <div class="detail-title-en" id="d-title-en" style="color:#6e7681;">请在星图中任意点击一颗星星，或从左侧列表选择。</div>
       
       <div class="detail-meta-box" id="d-meta-box" style="display:none;">
         <div class="meta-row"><span class="meta-label">👤 作者</span><span class="meta-val" id="d-author">-</span></div>
@@ -121,7 +161,7 @@
         </div>
         <span class="detail-label">核心摘要</span>
         <div class="detail-text" id="d-abs">-</div>
-        <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 穿越至原文</a>
+        <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 穿越至 Google Scholar 原文</a>
       </div>
     </div>
   </div>
@@ -93094,14 +93134,12 @@ const G = {
 };
 
 let nodes = G.nodes.filter(n => n.type === 'paper');
-// 【完全保留那个巅峰版的连线结构】只拿 paper_sim，绝不要 paper_cat 的撕裂引力！
 let simEdges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
-let allEdges = simEdges;
+let allEdges = G.edges;
 
 const categories = G.nodes.filter(n => n.type === 'category');
 const catMap = new Map(categories.map(c => [c.cat_id, c]));
 
-// 节点大小映射
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
     n.r = 3.0 + 20.0 * Math.pow((n.citations || 0) / maxCites, 0.4);
@@ -93127,8 +93165,7 @@ function renderPaperList() {
                 <span>${p.year||'未知'} | 🔥 ${p.citations||0}</span>
             </div>
         `;
-        // 左侧列表点击不仅激活，还会把镜头【拉近/放大】到该星系
-        el.onclick = () => { focusNode(p.id, true); };
+        el.onclick = () => { focusNode(p.id, true); showDetail(p); };
         paperBox.appendChild(el);
     });
 }
@@ -93152,15 +93189,13 @@ const canvas = document.querySelector('#main-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 const tt = document.querySelector('#tooltip');
 let width, height, transform = d3.zoomIdentity;
-
-// 永远保持一个选中的节点，绝不留空！
 let selectedNode = null;
 let hoveredNode = null;
 
 document.getElementById('count-n').innerText = nodes.length;
 
 function resize() {
-    width = window.innerWidth - 300 - 360;
+    width = window.innerWidth - 300 - 380;
     height = window.innerHeight;
     canvas.width = width * window.devicePixelRatio;
     canvas.height = height * window.devicePixelRatio;
@@ -93171,7 +93206,6 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
-// 【完全采用那个巅峰版的 D3 参数，绝不拉扯变形】
 const simulation = d3.forceSimulation(nodes)
   .force("link", d3.forceLink(allEdges).id(d => d.id).distance(180).strength(0.04))
   .force("charge", d3.forceManyBody().strength(-400).distanceMax(1800))
@@ -93181,8 +93215,64 @@ const simulation = d3.forceSimulation(nodes)
   .force("y", d3.forceY(height / 2).strength(0.02))
   .stop();
 
-for (let i = 0; i < 200; ++i) simulation.tick();
-simulation.on("tick", render);
+// --- 科幻终端打字机效果 --- 
+const term2 = document.getElementById('term-2');
+const term3 = document.getElementById('term-3');
+const loadBar = document.getElementById('loading-bar');
+const loadingScreen = document.getElementById('loading');
+
+const logMessages = [
+    "[OK] Database Connected. Loading 1553 Nodes...",
+    "[OK] Deep Dive Links Established.",
+    "[..] Initiating TF-IDF Dimensionality Reduction...",
+    "[OK] 3510 Academic Similarity Edges Verified.",
+    "[..] Calculating Force-Directed Gravity..."
+];
+
+let currentTick = 0;
+const TOTAL_TICKS = 200;
+const BATCH_SIZE = 8;
+
+function computeLayoutAsync() {
+    for (let i = 0; i < BATCH_SIZE && currentTick < TOTAL_TICKS; i++) {
+        simulation.tick();
+        currentTick++;
+    }
+    
+    const progress = (currentTick / TOTAL_TICKS) * 100;
+    loadBar.style.width = progress + '%';
+    
+    if (currentTick === 50) term2.innerHTML = logMessages[0] + '<span class="blinking-cursor"></span>';
+    if (currentTick === 100) term2.innerHTML = logMessages[2] + '<span class="blinking-cursor"></span>';
+    if (currentTick === 150) {
+        term2.innerHTML = logMessages[3];
+        term3.innerHTML = logMessages[4] + '<span class="blinking-cursor"></span>';
+    }
+    
+    if (currentTick < TOTAL_TICKS) {
+        requestAnimationFrame(computeLayoutAsync);
+    } else {
+        term3.innerHTML = "[OK] Simulation Complete. Accessing Dark Matter Space...";
+        setTimeout(() => {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => loadingScreen.style.display = 'none', 800);
+            
+            render();
+            autoFit();
+            
+            setTimeout(() => {
+                if (nodes.length > 0) {
+                    let topPaper = [...nodes].filter(n => n.primary_category === 'Rendering').sort((a,b) => (b.citations||0) - (a.citations||0))[0];
+                    if (!topPaper) topPaper = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0))[0];
+                    if (topPaper) { focusNode(topPaper.id, false); showDetail(topPaper); }
+                }
+                initCharts();
+                chartsInited = true;
+            }, 1800);
+        }, 500);
+    }
+}
+computeLayoutAsync();
 
 function wrapText(context, text, maxWidth) {
     let words = text.split(' ');
@@ -93254,14 +93344,12 @@ function render() {
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
-  // 常驻底色网
   ctx.beginPath();
   ctx.strokeStyle = "rgba(255, 255, 255, 0.03)"; 
   ctx.lineWidth = 0.6 / transform.k;
   simEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
   ctx.stroke();
 
-  // 高亮焦点网
   if (activeEdges.length > 0) {
       ctx.beginPath();
       ctx.strokeStyle = "rgba(88, 166, 255, 0.95)";
@@ -93344,29 +93432,20 @@ function render() {
 const zoomObj = d3.zoom().scaleExtent([0.05, 10]).on("zoom", (e) => { transform = e.transform; render(); });
 d3.select(canvas).call(zoomObj);
 
-// --- 改动 2：初始视角放大，看全且拉近 ---
 function autoFit() {
-    // 我们取一个稍微靠内一点的边界，保证一上来就把视距拉到最佳状态（像前滚了两下鼠标）
     const minX = d3.min(nodes, n=>n.x) - 100, maxX = d3.max(nodes, n=>n.x) + 100;
     const minY = d3.min(nodes, n=>n.y) - 100, maxY = d3.max(nodes, n=>n.y) + 100;
     const dx = maxX - minX, dy = maxY - minY;
-    // 原本 0.85 的系数现在直接提升到 1.6，大幅放大开局镜头
     const scale = Math.max(0.2, Math.min(3.0, 1.6 * Math.min(width / dx, height / dy)));
     const tx = width / 2 - scale * (minX + maxX) / 2;
     const ty = height / 2 - scale * (minY + maxY) / 2;
     d3.select(canvas).transition().duration(1500).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
 }
-setTimeout(autoFit, 150);
 
-// --- 改动 3：提供 doZoom 参数，开局激活时不拉近镜头，列表点击才拉近 ---
 function focusNode(id, doZoom=false) {
     const n = nodes.find(x => x.id === id);
     if(!n) return;
     selectedNode = n;
-    
-    // 强制右边栏保持显示这颗星星的内容
-    showDetail(selectedNode);
-    
     if (doZoom) {
         d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, height/2 - n.y*1.2).scale(1.2));
     }
@@ -93392,14 +93471,19 @@ canvas.addEventListener('mousemove', e => {
   }
 });
 
-// 核心：点击空白处，不取消选中状态！永远有一个焦点！
 canvas.addEventListener('click', () => {
   if (hoveredNode) {
-    focusNode(hoveredNode.id, false);
+    selectedNode = hoveredNode; 
+    showDetail(selectedNode);
+  } else {
+    selectedNode = null; 
+    closeDetail();
   }
+  render();
 });
 
 function showDetail(d) {
+  document.getElementById('sidebar-right').classList.add('active');
   document.getElementById('d-title').innerText = d.title_zh || d.full_title;
   document.getElementById('d-title-en').innerText = d.title_zh ? d.full_title : '';
   document.getElementById('d-meta-box').style.display = 'block';
@@ -93424,6 +93508,15 @@ function showDetail(d) {
 
   const link = document.getElementById('d-link');
   if (d.source_url) { link.href = d.source_url; link.style.display = 'block'; } else { link.style.display = 'none'; }
+}
+
+function closeDetail() {
+  document.getElementById('d-meta-box').style.display = 'none';
+  document.getElementById('d-abs-container').style.display = 'none';
+  document.getElementById('d-title').innerText = '等待观测指令...';
+  document.getElementById('d-title-en').innerText = '请在星图中任意点击一颗星星，或从左侧列表选择。';
+  const aiBox = document.getElementById('ai-summary-box');
+  if(aiBox) aiBox.style.display = 'none';
 }
 
 let chartsInited = false;
@@ -93496,25 +93589,6 @@ function initCharts() {
     });
     window.addEventListener('resize', () => { yChart.resize(); cChart.resize(); });
 }
-
-// --- 改动 3：页面加载后，强制自动激活最牛的那篇神作！但绝对不拉动镜头！ ---
-setTimeout(() => {
-    if (nodes.length > 0) {
-        let topPaper = [...nodes].filter(n => n.primary_category === 'Rendering').sort((a,b) => (b.citations||0) - (a.citations||0))[0];
-        if (!topPaper) {
-            topPaper = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0))[0];
-        }
-        if (topPaper) {
-            focusNode(topPaper.id, false);
-        }
-    }
-    
-    // 默认强制展开底部图表
-    if(!chartsInited) {
-        initCharts();
-        chartsInited = true;
-    }
-}, 1800);
 
 </script>
 </body>
