@@ -86,8 +86,8 @@ def main():
             c_idx = cat_node_id[c_id]
             nodes[c_idx]['count'] += 1
             nodes[c_idx]['papers'].append({'title': title, 'year': p.get('year', '')})
-            # 砍掉论文到分类的连线，追求 ConnectedPapers 纯净风格
-            # edges.append({'source': pid, 'target': c_idx, 'weight': 1, 'type': 'paper_cat'})
+            # 恢复引力线，但在前端隐藏，用来约束星云的物理位置
+            edges.append({'source': pid, 'target': c_idx, 'weight': 1.0, 'type': 'paper_cat'})
 
     # 论文之间关联优化：提高阈值，且每个节点只保留 Top-5 最强关联，防止边爆炸
     paper_sim_list = []

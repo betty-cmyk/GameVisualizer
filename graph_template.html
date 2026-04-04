@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>Game Science Dark Matter Graph</title>
+<title>Game Science Knowledge Graph</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #05070a; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
@@ -11,24 +11,24 @@
   canvas:active { cursor: grabbing; }
 
   /* 左侧边栏：图例与文献列表 */
-  #sidebar-left { width: 300px; min-width: 300px; background: rgba(8,11,16,0.85); border-right: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); }
+  #sidebar-left { width: 300px; min-width: 300px; background: rgba(8,11,16,0.9); border-right: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); }
   .sb-header { padding: 15px 20px; border-bottom: 1px solid #1f242e; font-size: 16px; font-weight: bold; color: #58a6ff; display: flex; justify-content: space-between; align-items: center; }
-  #legend-list { padding: 15px 20px; border-bottom: 1px solid #1f242e; display: flex; flex-direction: column; gap: 10px; }
-  .legend-item { display: flex; align-items: center; font-size: 13px; color: #c9d1d9; cursor: pointer; }
-  .legend-color { width: 14px; height: 14px; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 10px currentColor; }
+  #legend-list { padding: 10px 20px; border-bottom: 1px solid #1f242e; display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; font-size: 12px; color: #8b949e; cursor: pointer; transition: 0.2s; padding: 4px; border-radius: 4px; }
+  .legend-item:hover, .legend-item.active { background: #161b22; color: #e6edf3; }
+  .legend-color { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 8px currentColor; }
   #paper-list { flex: 1; overflow-y: auto; padding: 10px; }
-  .list-item { padding: 10px; border-bottom: 1px solid #11151d; font-size: 12px; cursor: pointer; transition: 0.2s; border-radius: 6px; }
+  .list-item { padding: 12px; border-bottom: 1px solid #11151d; cursor: pointer; transition: 0.2s; border-radius: 6px; }
   .list-item:hover { background: #1f242e; }
-  .list-title { color: #8b949e; margin-bottom: 5px; line-height: 1.4; }
+  .list-title { color: #c9d1d9; margin-bottom: 8px; font-size: 13px; line-height: 1.5; white-space: normal; word-break: break-word; }
   .list-meta { color: #58a6ff; font-size: 11px; display: flex; justify-content: space-between; }
 
-  /* 右侧边栏：论文档案与图表 */
-  #sidebar-right { width: 360px; min-width: 360px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-  #sidebar-right.active { transform: translateX(0); }
+  /* 右侧边栏：论文档案与图表 (常驻) */
+  #sidebar-right { width: 360px; min-width: 360px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; }
   .detail-body { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #8b949e; }
-  .detail-body::-webkit-scrollbar { width: 6px; }
-  .detail-body::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 3px; }
-  .detail-title { color: #e6edf3; font-size: 17px; font-weight: bold; line-height: 1.4; margin-bottom: 15px; }
+  .detail-body::-webkit-scrollbar, #paper-list::-webkit-scrollbar { width: 6px; }
+  .detail-body::-webkit-scrollbar-thumb, #paper-list::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 3px; }
+  .detail-title { color: #e6edf3; font-size: 16px; font-weight: bold; line-height: 1.5; margin-bottom: 15px; }
   .detail-meta-box { background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
   .meta-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #1f242e; padding-bottom: 8px; }
   .meta-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
@@ -36,66 +36,66 @@
   .meta-val { color: #79c0ff; font-weight: bold; text-align: right; width: 65%; }
   .detail-label { color: #58a6ff; font-weight: bold; margin-bottom: 8px; display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid #58a6ff; padding-left: 6px; }
   .detail-text { text-align: justify; margin-bottom: 20px; }
-  .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
+  .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
   .detail-link-btn:hover { background: #2ea043; }
-  .close-btn { background: none; border: none; color: #8b949e; font-size: 22px; cursor: pointer; }
 
-  #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #161b22; border: 1px solid #1f242e; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; }
-  #charts-btn:hover { background: #1f242e; color: #fff; }
-  #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 0; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); }
-  #charts-tray.active { bottom: 0; }
-  .chart-box { flex: 1; background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; }
-  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 10px; font-weight: bold; text-align: center; }
-  .chart-canvas { flex: 1; }
+  /* 底部图表托盘 (不遮挡两侧边栏) */
+  #charts-tray { position: absolute; bottom: 0; left: 300px; right: 360px; height: 260px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; backdrop-filter: blur(12px); }
+  .chart-box { flex: 1; background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; min-width: 0; }
+  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 5px; font-weight: bold; text-align: center; }
+  .chart-canvas { flex: 1; min-height: 0; }
   #tooltip { position: absolute; pointer-events: none; background: rgba(13,17,23,0.95); border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #c9d1d9; display: none; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
-  .tt-title { font-weight: bold; color: #e6edf3; margin-bottom: 4px; }
 </style>
 </head>
 <body>
 <div id="app">
+  <!-- 左侧列表 -->
   <div id="sidebar-left">
     <div class="sb-header">
-      <span>🌌 Dark Matter Space</span>
+      <span>🌌 游戏科学星图</span>
       <span style="font-size:12px; color:#8b949e; font-weight:normal;"><span id="count-n">-</span> 篇文献</span>
     </div>
     <div id="legend-list"></div>
-    <div style="padding:10px 20px; font-size:12px; color:#6e7681; border-bottom:1px solid #1f242e; background:#05070a;">
-      点击星云节点点亮关联脉络
+    <div style="padding:10px 20px; font-size:12px; color:#58a6ff; border-bottom:1px solid #1f242e; background:#0d1117; font-weight:bold;">
+      当前显示分类论文列表
     </div>
     <div id="paper-list"></div>
   </div>
 
+  <!-- 画布 -->
   <canvas id="main-canvas"></canvas>
-  <button id="charts-btn" onclick="toggleCharts()">📊 展开历年统计图表</button>
 
+  <!-- 底部图表 -->
   <div id="charts-tray">
     <div class="chart-box">
-      <div class="chart-title">历年发文量趋势</div>
+      <div class="chart-title">历年顶会发文量趋势</div>
       <div class="chart-canvas" id="chart-years"></div>
     </div>
     <div class="chart-box">
-      <div class="chart-title">研究领域分布</div>
+      <div class="chart-title">研究领域影响力分布</div>
       <div class="chart-canvas" id="chart-cats"></div>
     </div>
   </div>
 
+  <!-- 右侧详情 -->
   <div id="sidebar-right">
     <div class="sb-header">
       <span>星系档案</span>
-      <button class="close-btn" onclick="closeDetail()">×</button>
     </div>
     <div class="detail-body">
-      <div class="detail-title" id="d-title">-</div>
-      <div class="detail-meta-box">
+      <div class="detail-title" id="d-title">请在左侧列表或星图中点击论文节点查看详情</div>
+      <div class="detail-meta-box" id="d-meta-box" style="display:none;">
         <div class="meta-row"><span class="meta-label">👤 作者</span><span class="meta-val" id="d-author">-</span></div>
         <div class="meta-row"><span class="meta-label">📅 年份</span><span class="meta-val" id="d-year">-</span></div>
         <div class="meta-row"><span class="meta-label">🏷️ 领域</span><span class="meta-val" id="d-cat">-</span></div>
         <div class="meta-row"><span class="meta-label">🎖️ 学术评级</span><span class="meta-val" id="d-tier" style="color:#e3b341">-</span></div>
         <div class="meta-row"><span class="meta-label">🔥 被引次数</span><span class="meta-val" id="d-cite" style="color:#f85149">-</span></div>
       </div>
-      <span class="detail-label">核心摘要</span>
-      <div class="detail-text" id="d-abs">-</div>
-      <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 穿越至原文</a>
+      <div id="d-abs-container" style="display:none;">
+        <span class="detail-label">核心摘要</span>
+        <div class="detail-text" id="d-abs">-</div>
+        <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 穿越至 Google Scholar 原文</a>
+      </div>
     </div>
   </div>
 </div>
@@ -107,39 +107,58 @@
 const G = {GRAPH_DATA};
 
 let nodes = G.nodes.filter(n => n.type === 'paper');
-let edges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
+// 【重构1】后端恢复了 paper_cat 用于引力，但这里我们拆分它，只用 paper_sim 画线
+let simEdges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
+let allEdges = G.edges;
+
 const categories = G.nodes.filter(n => n.type === 'category');
 const catMap = new Map(categories.map(c => [c.cat_id, c]));
 
+// 动态计算每个论文节点的半径（被引量越高越大）
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    // 平滑大小，普通文献极小(2px)，神作极大(18px)
-    n.r = 2.0 + 16.0 * Math.pow((n.citations || 0) / maxCites, 0.5);
-    // 扩大物理碰撞半径，确保即便不显示文字，节点之间也有足够的留白星空
-    n.collideR = n.r + 15;
+    n.r = 3.5 + 28.0 * Math.pow((n.citations || 0) / maxCites, 0.4);
+    n.collideR = n.r + 15; // 物理碰撞半径预留空隙
 });
 
-// 初始化左侧图例
+// 初始化左侧图例和列表过滤
+let currentFilterCat = 'Rendering';
 const legendBox = document.getElementById('legend-list');
-categories.forEach(c => {
-    legendBox.innerHTML += `<div class="legend-item"><div class="legend-color" style="background:${c.color}; color:${c.color}"></div>${c.label}</div>`;
-});
-
 const paperBox = document.getElementById('paper-list');
-nodes.sort((a,b) => (b.citations||0) - (a.citations||0)).forEach(p => {
-    const catColor = catMap.get(p.primary_category)?.color || '#8b949e';
+
+function renderPaperList() {
+    paperBox.innerHTML = '';
+    const filtered = nodes.filter(n => n.primary_category === currentFilterCat).sort((a,b) => (b.citations||0) - (a.citations||0));
+    filtered.forEach(p => {
+        const catColor = catMap.get(p.primary_category)?.color || '#8b949e';
+        const el = document.createElement('div');
+        el.className = 'list-item';
+        el.innerHTML = `
+            <div class="list-title">${p.label}</div>
+            <div class="list-meta">
+                <span style="color:${catColor}">● ${p.primary_category.replace(/^.*_/,'')}</span>
+                <span>${p.year||'未知'} | 🔥 ${p.citations||0}</span>
+            </div>
+        `;
+        el.onclick = () => { focusNode(p.id); showDetail(p); };
+        paperBox.appendChild(el);
+    });
+}
+
+categories.forEach(c => {
     const el = document.createElement('div');
-    el.className = 'list-item';
-    el.innerHTML = `
-        <div class="list-title">${p.label}</div>
-        <div class="list-meta">
-            <span style="color:${catColor}">● ${p.primary_category.replace(/^.*_/,'')}</span>
-            <span>${p.year||'未知'} | 🔥 ${p.citations||0}</span>
-        </div>
-    `;
-    el.onclick = () => { focusNode(p.id); showDetail(p); };
-    paperBox.appendChild(el);
+    el.className = 'legend-item';
+    el.innerHTML = `<div class="legend-color" style="background:${c.color}; color:${c.color}"></div>${c.label}`;
+    el.onclick = () => {
+        currentFilterCat = c.cat_id;
+        document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        renderPaperList();
+    };
+    if (c.cat_id === currentFilterCat) el.classList.add('active');
+    legendBox.appendChild(el);
 });
+renderPaperList();
 
 const canvas = document.querySelector('#main-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -151,36 +170,62 @@ let hoveredNode = null;
 document.getElementById('count-n').innerText = nodes.length;
 
 function resize() {
-    width = window.innerWidth - 300;
-    height = window.innerHeight;
+    width = window.innerWidth - 300 - 360;
+    height = window.innerHeight - 260;
     canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
+    canvas.height = window.innerHeight * window.devicePixelRatio;
     canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
+    canvas.style.height = window.innerHeight + 'px';
     canvas.style.marginLeft = '300px';
 }
 window.addEventListener('resize', resize); resize();
 
-// 极强排斥力，打散所有节点，形成稀疏的星空
-const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(edges).id(d => d.id).distance(180).strength(0.12))
-  .force("charge", d3.forceManyBody().strength(-400).distanceMax(1200))
+// 【重构2】力学引擎：使用所有边(包括连向分类的边)产生引力，使得同类紧密抱团形成星云
+const simulation = d3.forceSimulation([...categories, ...nodes])
+  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(d => d.type === 'paper_cat' ? 10 : 150).strength(d => d.type === 'paper_cat' ? 0.3 : 0.05))
+  .force("charge", d3.forceManyBody().strength(d => d.type === 'category' ? -1000 : -150).distanceMax(800))
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  .force("x", d3.forceX(width / 2).strength(0.04))
-  .force("y", d3.forceY(height / 2).strength(0.04));
+  .force("collision", d3.forceCollide().radius(d => d.collideR || 20).iterations(2));
 
 for (let i = 0; i < 200; ++i) simulation.tick();
 simulation.on("tick", render);
 
+// 工具：多行文本换行
+function wrapText(context, text, maxWidth) {
+    let words = text.split(' ');
+    if (words.length === 1) words = text.split(/(?=[A-Z])/); // 如果是长英文没空格，按大写拆
+    let lines = [];
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+        let word = words[i];
+        let width = context.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
+}
+
+// 工具：矩形碰撞检测
+function intersectRect(r1, r2) {
+  return !(r2.left > r1.right || 
+           r2.right < r1.left || 
+           r2.top > r1.bottom ||
+           r2.bottom < r1.top);
+}
+
 function render() {
   ctx.save();
-  // 宇宙深空绝对黑底
   ctx.fillStyle = "#05070a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   
-  // A. 绘制基于分类聚合的星云晕染层
+  // A. 绘制基于分类聚合的星云光晕
   ctx.save();
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
@@ -188,77 +233,57 @@ function render() {
   
   categories.forEach(c => {
       const own = nodes.filter(n => n.primary_category === c.cat_id);
-      if (own.length < 2) return;
-      // 计算该类别的引力中心和散布半径
-      const cx = d3.mean(own, n => n.x);
-      const cy = d3.mean(own, n => n.y);
-      // 根据节点数量动态决定星云大小
-      const auraRadius = 200 + own.length * 4;
-      
+      if (!own.length) return;
+      const cx = c.x; const cy = c.y;
+      const auraRadius = 250 + own.length * 3;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, auraRadius);
       const hex = c.color.replace('#','');
       const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
-      // 极度柔和的星云，不抢占节点亮度
-      grad.addColorStop(0, `rgba(${r},${g},${b},0.05)`);
-      grad.addColorStop(0.5, `rgba(${r},${g},${b},0.015)`);
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.08)`);
+      grad.addColorStop(0.4, `rgba(${r},${g},${b},0.02)`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      
-      ctx.beginPath();
-      ctx.fillStyle = grad;
-      ctx.arc(cx, cy, auraRadius, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.fillStyle = grad; ctx.arc(cx, cy, auraRadius, 0, Math.PI * 2); ctx.fill();
   });
   ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-  // B. 计算当前点击激活的节点和连线关系
+  // B. 连线关系
   let activeEdges = [];
   let relatedNodes = new Set();
   if (selectedNode) {
       relatedNodes.add(selectedNode.id);
-      edges.forEach(e => {
+      simEdges.forEach(e => {
           if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
               activeEdges.push(e);
-              relatedNodes.add(e.source.id); 
-              relatedNodes.add(e.target.id);
+              relatedNodes.add(e.source.id); relatedNodes.add(e.target.id);
           }
       });
   }
 
-  // 进入世界坐标系绘制节点和线
   ctx.save();
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
-  // 常驻极暗连线 (暗物质网络)
+  // 仅绘制论文间的常驻极暗连线
   ctx.beginPath();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.02)"; 
-  ctx.lineWidth = 0.6 / transform.k;
-  edges.forEach(e => {
-      ctx.moveTo(e.source.x, e.source.y);
-      ctx.lineTo(e.target.x, e.target.y);
-  });
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.04)"; 
+  ctx.lineWidth = 0.5 / transform.k;
+  simEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
   ctx.stroke();
 
-  // 被点击的节点爆发高亮连线
+  // 高亮点击的连线
   if (activeEdges.length > 0) {
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(88, 166, 255, 0.85)";
-      ctx.lineWidth = 2.0 / transform.k;
-      activeEdges.forEach(e => {
-          ctx.moveTo(e.source.x, e.source.y);
-          ctx.lineTo(e.target.x, e.target.y);
-      });
+      ctx.strokeStyle = "rgba(88, 166, 255, 0.95)";
+      ctx.lineWidth = 2.5 / transform.k;
+      activeEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
       ctx.stroke();
   }
 
-  // 绘制星系节点圆点
+  // 绘制星系节点
   nodes.forEach(n => {
-      let alpha = 0.2 + 0.4 * ((n.citations || 0) / maxCites); // 默认幽暗，牛逼的论文微亮
-      if (selectedNode) {
-          // 一旦有点击，无关节点全部沉入最暗
-          alpha = relatedNodes.has(n.id) ? 1.0 : 0.05;
-      }
+      let alpha = 0.3 + 0.6 * ((n.citations || 0) / maxCites);
+      if (selectedNode) alpha = relatedNodes.has(n.id) ? 1.0 : 0.05;
       
       ctx.beginPath();
       ctx.fillStyle = n.color || "#8b949e";
@@ -266,56 +291,75 @@ function render() {
       ctx.arc(n.x, n.y, n.r, 0, 2 * Math.PI);
       ctx.fill();
       
-      // 只有被激活或者是顶级神作，才会有发光特效
-      if ((selectedNode && relatedNodes.has(n.id)) || (!selectedNode && n.tier === 'S')) {
+      if (n.tier === 'S' || (selectedNode && relatedNodes.has(n.id))) {
           ctx.shadowColor = n.color;
-          ctx.shadowBlur = 12 / transform.k;
+          ctx.shadowBlur = 15 / transform.k;
           ctx.fill();
           ctx.shadowBlur = 0;
       }
   });
   ctx.restore();
 
-  // C. 绘制文字 (绝对物理像素坐标系，保证永不随滚轮缩放，永不模糊！)
+  // C. 绘制防碰撞多行文字 (屏幕绝对坐标)
   ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
+  ctx.textBaseline = "top";
   
-  nodes.forEach(n => {
-      // 将世界坐标系转换为屏幕像素系
+  let drawnBoxes = [];
+  // 按影响力排序，优先保证牛逼的论文标签一定显示出来！
+  let sortedNodes = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0));
+  
+  sortedNodes.forEach(n => {
       const screenX = n.x * transform.k + transform.x;
       const screenY = n.y * transform.k + transform.y;
-      
-      // 屏幕外不画
-      if (screenX < -50 || screenX > width + 50 || screenY < -50 || screenY > height + 50) return;
+      if (screenX < -50 || screenX > width + 50 || screenY < -50 || screenY > window.innerHeight + 50) return;
       
       let isFocus = selectedNode && relatedNodes.has(n.id);
-      
-      // 【核心逻辑】：平时满屏暗物质，绝对不显示文字！只有点击选中时才显示相关节点的文字！或者它是被引量巨高的超级神作！
-      if (!isFocus && !(!selectedNode && n.tier === 'S' && n.citations > 50)) return;
+      if (selectedNode && !isFocus) return; // 如果点击了别人，自己的名字坚决隐藏
 
-      // 文字永远保持绝对 11px 大小，字体极客
-      ctx.font = `${isFocus ? 'bold ' : ''}11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-      ctx.fillStyle = isFocus ? "#ffffff" : "rgba(139, 148, 158, 0.8)";
-      
-      // 在圆的右侧物理偏移量 (10px) 处写字
       const screenR = n.r * transform.k;
-      ctx.fillText(n.label, screenX + screenR + 6, screenY);
+      const fontSize = isFocus ? 13 : 11;
+      ctx.font = `${isFocus ? 'bold ' : ''}${fontSize}px -apple-system, sans-serif`;
+      
+      // 计算折行 (最大宽 120px)
+      const lines = wrapText(ctx, n.label, 120);
+      const lineHeight = fontSize * 1.4;
+      const textHeight = lines.length * lineHeight;
+      
+      // 计算这个文字占据的屏幕包围盒
+      const box = {
+          left: screenX + screenR + 6,
+          right: screenX + screenR + 6 + 120,
+          top: screenY - textHeight/2,
+          bottom: screenY + textHeight/2
+      };
+
+      // 如果不是强制高亮的焦点，且与其他已经画的文字重叠，则剔除不画 (Culling)
+      if (!isFocus) {
+          let overlap = drawnBoxes.some(b => intersectRect(box, b));
+          if (overlap) return;
+      }
+      drawnBoxes.push(box);
+
+      ctx.fillStyle = isFocus ? "#ffffff" : "rgba(201, 209, 217, 0.85)";
+      lines.forEach((line, i) => {
+          ctx.fillText(line, box.left, box.top + i * lineHeight);
+      });
   });
 
   ctx.restore();
 }
 
-// 交互：缩放
-const zoomObj = d3.zoom().scaleExtent([0.05, 10]).on("zoom", (e) => { transform = e.transform; render(); });
+// 交互：缩放与拾取
+const zoomObj = d3.zoom().scaleExtent([0.1, 10]).on("zoom", (e) => { transform = e.transform; render(); });
 d3.select(canvas).call(zoomObj);
 
 function autoFit() {
-    const minX = d3.min(nodes, n=>n.x) - 100, maxX = d3.max(nodes, n=>n.x) + 100;
-    const minY = d3.min(nodes, n=>n.y) - 100, maxY = d3.max(nodes, n=>n.y) + 100;
+    const minX = d3.min(nodes, n=>n.x) - 50, maxX = d3.max(nodes, n=>n.x) + 50;
+    const minY = d3.min(nodes, n=>n.y) - 50, maxY = d3.max(nodes, n=>n.y) + 50;
     const dx = maxX - minX, dy = maxY - minY;
-    const scale = Math.max(0.05, Math.min(8, 0.85 * Math.min(width / dx, height / dy)));
+    const scale = Math.max(0.1, Math.min(5, 0.8 * Math.min(width / dx, window.innerHeight / dy)));
     const tx = width / 2 - scale * (minX + maxX) / 2;
-    const ty = height / 2 - scale * (minY + maxY) / 2;
+    const ty = window.innerHeight / 2 - scale * (minY + maxY) / 2;
     d3.select(canvas).transition().duration(1000).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
 }
 setTimeout(autoFit, 100);
@@ -324,14 +368,16 @@ function focusNode(id) {
     const n = nodes.find(x => x.id === id);
     if(!n) return;
     selectedNode = n;
-    d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, height/2 - n.y*1.2).scale(1.2));
+    // 聚焦不放太大，防止找不到上下文
+    d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, window.innerHeight/2 - n.y*1.2).scale(1.2));
     render();
 }
 
-// 悬浮交互：仅显示 tooltip，不翻转颜色和高亮
+// 仅悬停出 tooltip，绝不高亮变色
 canvas.addEventListener('mousemove', e => {
   const [mx, my] = [(e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k];
-  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < n.r + 8 / transform.k);
+  const pickR = Math.max(8 / transform.k, (nodes[0]?.r || 5) + 2);
+  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 5) + pickR);
   
   if (found !== hoveredNode) {
     hoveredNode = found;
@@ -339,21 +385,18 @@ canvas.addEventListener('mousemove', e => {
     if (found) {
       tt.style.display = 'block';
       tt.style.left = e.pageX + 15 + 'px'; tt.style.top = e.pageY + 15 + 'px';
-      tt.innerHTML = `<div class="tt-title">${found.full_title || found.label}</div>
-                      <div style="color:#8b949e">被引: <span style="color:#58a6ff">${found.citations || 0}</span></div>`;
+      tt.innerHTML = `<strong>${found.full_title || found.label}</strong><br>被引: ${found.citations || 0}`;
     } else {
       tt.style.display = 'none';
     }
   }
 });
 
-// 点击交互：选中高亮该星系，并在右侧出详情
 canvas.addEventListener('click', () => {
   if (hoveredNode) {
     selectedNode = hoveredNode; 
     showDetail(selectedNode);
   } else {
-    // 点击空白处，重置暗物质宇宙
     selectedNode = null; 
     closeDetail();
   }
@@ -361,24 +404,26 @@ canvas.addEventListener('click', () => {
 });
 
 function showDetail(d) {
-  const panel = document.getElementById('sidebar-right');
-  panel.classList.add('active');
+  document.getElementById('d-meta-box').style.display = 'block';
+  document.getElementById('d-abs-container').style.display = 'block';
   document.getElementById('d-title').innerText = d.full_title;
   document.getElementById('d-author').innerText = d.author || '-';
   document.getElementById('d-year').innerText = d.year || '-';
   document.getElementById('d-cat').innerText = d.primary_category.replace(/^.*_/,'');
   document.getElementById('d-tier').innerText = d.tier || 'C';
   document.getElementById('d-cite').innerText = d.citations || '0';
-  document.getElementById('d-abs').innerText = d.abstract || '暂无摘要，请点击下方链接前往学术源查看。';
+  document.getElementById('d-abs').innerText = d.abstract || '暂无摘要。';
   const link = document.getElementById('d-link');
   if (d.source_url) { link.href = d.source_url; link.style.display = 'block'; } else { link.style.display = 'none'; }
 }
 
 function closeDetail() {
-  document.getElementById('sidebar-right').classList.remove('active');
+  document.getElementById('d-meta-box').style.display = 'none';
+  document.getElementById('d-abs-container').style.display = 'none';
+  document.getElementById('d-title').innerText = '请在左侧列表或星图中点击论文节点查看详情';
 }
 
-// ECharts 图表...
+// 6. ECharts 图表 (撑满底部中部区域)
 let chartsInited = false;
 function toggleCharts() {
   const tray = document.getElementById('charts-tray');
@@ -393,15 +438,26 @@ function initCharts() {
     nodes.forEach(n => { if(n.year > 1900) years[n.year] = (years[n.year]||0)+1; });
     const sortedYears = Object.keys(years).sort();
     const yChart = echarts.init(document.getElementById('chart-years'));
-    yChart.setOption({tooltip: {trigger: 'axis'}, grid: {top: 20, right: 20, bottom: 20, left: 30}, xAxis: {type: 'category', data: sortedYears, axisLabel: {color: '#8b949e'}}, yAxis: {type: 'value', splitLine: {lineStyle: {color: '#1f242e'}}, axisLabel: {color: '#8b949e'}}, series: [{data: sortedYears.map(y=>years[y]), type: 'line', smooth: true, areaStyle: {color: 'rgba(88, 166, 255, 0.1)'}, itemStyle: {color: '#58a6ff'}}]});
+    yChart.setOption({tooltip: {trigger: 'axis'}, grid: {top: 30, right: 20, bottom: 20, left: 30}, xAxis: {type: 'category', data: sortedYears, axisLabel: {color: '#8b949e'}}, yAxis: {type: 'value', splitLine: {lineStyle: {color: '#1f242e'}}, axisLabel: {color: '#8b949e'}}, series: [{data: sortedYears.map(y=>years[y]), type: 'line', smooth: true, areaStyle: {color: 'rgba(88, 166, 255, 0.1)'}, itemStyle: {color: '#58a6ff'}}]});
 
     const cats = {};
     nodes.forEach(n => { cats[n.primary_category] = (cats[n.primary_category]||0)+1; });
     const catData = Object.entries(cats).map(([k,v]) => ({name: k.replace(/^.*_/,''), value: v})).sort((a,b)=>b.value-a.value);
     const cChart = echarts.init(document.getElementById('chart-cats'));
-    cChart.setOption({tooltip: {trigger: 'item'}, series: [{type: 'pie', radius: ['40%', '70%'], itemStyle: { borderRadius: 4, borderColor: '#0d1117', borderWidth: 2 }, label: { show: false }, data: catData}]});
+    // 解决标签重叠，开启 avoidLabelOverlap
+    cChart.setOption({tooltip: {trigger: 'item'}, series: [{type: 'pie', radius: ['40%', '65%'], avoidLabelOverlap: true, itemStyle: { borderRadius: 4, borderColor: '#0d1117', borderWidth: 2 }, label: { show: true, color: '#8b949e', formatter: '{b}\n{c}篇' }, data: catData}]});
     window.addEventListener('resize', () => { yChart.resize(); cChart.resize(); });
 }
+
+// 开局王炸：选取被引量最高的论文激活！
+setTimeout(() => {
+    if (nodes.length > 0) {
+        const topPaper = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0))[0];
+        focusNode(topPaper.id);
+        showDetail(topPaper);
+    }
+}, 500);
+
 </script>
 </body>
 </html>
