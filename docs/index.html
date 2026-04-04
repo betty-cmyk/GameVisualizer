@@ -48,11 +48,11 @@
   .chart-box { flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; }
   .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 10px; font-weight: bold; text-align: center; }
   .chart-canvas { flex: 1; }
+  #tooltip { position: absolute; pointer-events: none; background: rgba(22, 27, 34, 0.9); border: 1px solid #58a6ff; border-radius: 6px; padding: 8px 12px; font-size: 12px; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- 左侧：图例与文献列表 -->
   <div id="sidebar-left">
     <div class="sb-header">
       <span>🎮 GamePaper Space</span>
@@ -65,11 +65,9 @@
     <div id="paper-list"></div>
   </div>
 
-  <!-- 中间：画布 -->
   <canvas id="main-canvas"></canvas>
   <button id="charts-btn" onclick="toggleCharts()">📊 展开历年统计图表</button>
 
-  <!-- 底部：图表托盘 -->
   <div id="charts-tray">
     <div class="chart-box">
       <div class="chart-title">历年发文量趋势</div>
@@ -81,7 +79,6 @@
     </div>
   </div>
 
-  <!-- 右侧：详情面板 -->
   <div id="sidebar-right">
     <div class="sb-header">
       <span>论文档案</span>
@@ -102,6 +99,7 @@
     </div>
   </div>
 </div>
+<div id="tooltip"></div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
@@ -47947,25 +47945,18 @@ const G = {
   "total": 1545
 };
 
-// 1. 数据预处理 (ConnectedPapers 风格)
-// 剔除大类节点，纯粹展示论文节点
 let nodes = G.nodes.filter(n => n.type === 'paper');
-// 剔除 paper_cat 边，只保留 paper_sim 边
 let edges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
 
 const categories = G.nodes.filter(n => n.type === 'category');
 const catMap = new Map(categories.map(c => [c.cat_id, c]));
 
-// 动态计算每个论文节点的半径（根据被引量，最小4，最大20）
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    // 平滑的开方映射
     n.r = 4 + 16 * Math.sqrt((n.citations || 0) / maxCites);
-    // 为文字防碰撞预留隐形半径：文字越长，排斥力越大
     n.collideR = n.r + (n.label ? n.label.length * 3.5 : 10) + 5;
 });
 
-// 2. 初始化 UI (左侧列表与图例)
 const legendBox = document.getElementById('legend-list');
 categories.forEach(c => {
     legendBox.innerHTML += `<div class="legend-item"><div class="legend-color" style="background:${c.color}"></div>${c.label}</div>`;
@@ -47983,21 +47974,19 @@ nodes.sort((a,b) => (b.year||0) - (a.year||0)).forEach(p => {
             <span>${p.year||'未知'} | 被引:${p.citations||0}</span>
         </div>
     `;
-    el.onclick = () => { 
-        focusNode(p.id);
-        showDetail(p);
-    };
+    el.onclick = () => { focusNode(p.id); showDetail(p); };
     paperBox.appendChild(el);
 });
 
-// 3. Canvas 渲染核心
 const canvas = document.querySelector('#main-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
+const tt = document.querySelector('#tooltip');
 let width, height, transform = d3.zoomIdentity;
 let hoveredNode = null, selectedNode = null;
 
+document.getElementById('count-n').innerText = nodes.length;
+
 function resize() {
-    // 画布宽度要减去左侧边栏的宽度
     width = window.innerWidth - 300;
     height = window.innerHeight;
     canvas.width = width * window.devicePixelRatio;
@@ -48009,17 +47998,14 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
-// 4. 力学仿真 (极强碰撞、防重叠)
-// 根据 ConnectedPapers 经验：多体斥力强，连线拉力适中，碰撞半径极大
 const simulation = d3.forceSimulation(nodes)
   .force("link", d3.forceLink(edges).id(d => d.id).distance(120).strength(0.15))
   .force("charge", d3.forceManyBody().strength(-400).distanceMax(1000))
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2)) // 使用文字宽度作为碰撞半径
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
   .force("x", d3.forceX(width / 2).strength(0.05))
   .force("y", d3.forceY(height / 2).strength(0.05));
 
-// 预演 150 次，页面打开时就是稳定状态！
 for (let i = 0; i < 150; ++i) simulation.tick();
 simulation.on("tick", render);
 
@@ -48044,9 +48030,9 @@ function render() {
       });
   }
 
-  // A. 绘制常规线 (常驻，极淡)
+  // 极淡背景连线
   ctx.beginPath();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.05)"; // 极淡的白线
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
   ctx.lineWidth = 0.5 / transform.k;
   edges.forEach(e => {
       ctx.moveTo(e.source.x, e.source.y);
@@ -48054,10 +48040,10 @@ function render() {
   });
   ctx.stroke();
 
-  // B. 绘制高亮线 (当前激活节点的连线)
+  // 高亮连线
   if (activeEdges.length > 0) {
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(88, 166, 255, 0.8)"; // 亮蓝色
+      ctx.strokeStyle = "rgba(88, 166, 255, 0.9)";
       ctx.lineWidth = 2.0 / transform.k;
       activeEdges.forEach(e => {
           ctx.moveTo(e.source.x, e.source.y);
@@ -48066,39 +48052,44 @@ function render() {
       ctx.stroke();
   }
 
-  // C. 绘制节点与文字
+  // 绘制节点
   nodes.forEach(n => {
-      const isActive = active ? relatedNodes.has(n.id) : true;
+      // 核心修改 1: 默认全为极暗状态 (暗物质)，只有激活节点才变亮
+      const isActive = active ? relatedNodes.has(n.id) : false;
       const alpha = isActive ? 0.95 : 0.15;
       
-      // 节点
       ctx.beginPath();
       ctx.fillStyle = n.color || "#8b949e";
       ctx.globalAlpha = alpha;
       ctx.arc(n.x, n.y, n.r, 0, 2 * Math.PI);
       ctx.fill();
       
-      // 给节点加个深色描边，增加立体感
       ctx.lineWidth = 1.5 / transform.k;
       ctx.strokeStyle = "#0b0e14";
       ctx.stroke();
 
-      // 文字 (常驻显示，错落有致)
-      // 只有在节点足够大，或者被激活，或者层级较高(S级)时才显示粗体
-      const isBold = n.tier === 'S' || n.id === (active && active.id);
-      ctx.font = `${isBold ? 'bold ' : ''}${Math.max(10, 10/transform.k)}px sans-serif`;
-      ctx.fillStyle = isActive ? "#e6edf3" : "#484f58";
-      ctx.fillText(n.label, n.x + n.r + 4, n.y + 4);
+      // 核心修改 2: 绝对大小文字 (10px或12px)，不随 transform.k 缩放
+      // 只有在节点足够大，或者被激活，或者是S级神作时才显示文字
+      const isBold = n.tier === 'S' || isActive;
+      const absoluteFontSize = isBold ? 11 : 9;
+      
+      // 这里除以 k 是因为外部环境被 ctx.scale 了，除以它能反向抵消缩放，保持屏幕上的绝对像素
+      ctx.font = `${isBold ? 'bold ' : ''}${absoluteFontSize / transform.k}px sans-serif`;
+      // 文字平时极淡，悬停激活时变亮
+      ctx.fillStyle = isActive ? "#ffffff" : "rgba(230, 237, 243, 0.25)";
+      
+      // 防止缩小到极致时满屏文字卡顿
+      if (transform.k > 0.3 || isActive || n.tier === 'S') {
+          ctx.fillText(n.label, n.x + n.r + 4/transform.k, n.y + 4/transform.k);
+      }
   });
 
   ctx.restore();
 }
 
-// 5. 交互：缩放、拖拽与点击
 const zoomObj = d3.zoom().scaleExtent([0.1, 8]).on("zoom", (e) => { transform = e.transform; render(); });
 d3.select(canvas).call(zoomObj);
 
-// 自动适配视口，将所有节点居中
 function autoFit() {
     const minX = d3.min(nodes, n=>n.x) - 100, maxX = d3.max(nodes, n=>n.x) + 100;
     const minY = d3.min(nodes, n=>n.y) - 100, maxY = d3.max(nodes, n=>n.y) + 100;
@@ -48114,29 +48105,32 @@ function focusNode(id) {
     const n = nodes.find(x => x.id === id);
     if(!n) return;
     selectedNode = n;
-    // 居中放大该节点
     d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.5, height/2 - n.y*1.5).scale(1.5));
     render();
 }
 
 canvas.addEventListener('mousemove', e => {
   const [mx, my] = [(e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k];
-  // 扩大一点拾取半径方便选中
   const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 5) + 6 / transform.k);
   if (found !== hoveredNode) {
     hoveredNode = found;
     canvas.style.cursor = found ? 'pointer' : 'grab';
+    if (found) {
+      tt.style.display = 'block';
+      tt.style.left = e.pageX + 15 + 'px'; tt.style.top = e.pageY + 15 + 'px';
+      tt.innerHTML = `<strong>${found.full_title || found.label}</strong><br>被引: ${found.citations || 0}`;
+    } else {
+      tt.style.display = 'none';
+    }
     render();
   }
 });
 
 canvas.addEventListener('click', () => {
-  if (hoveredNode) {
-    selectedNode = hoveredNode; 
-    showDetail(selectedNode);
+  if (hoveredNode && hoveredNode.type !== 'category') {
+    selectedNode = hoveredNode; showDetail(selectedNode);
   } else {
-    selectedNode = null; 
-    closeDetail();
+    selectedNode = null; closeDetail();
   }
   render();
 });
@@ -48159,7 +48153,6 @@ function closeDetail() {
   document.getElementById('sidebar-right').classList.remove('active');
 }
 
-// 6. 底部图表逻辑 (ECharts)
 let chartsInited = false;
 function toggleCharts() {
   const tray = document.getElementById('charts-tray');
@@ -48171,7 +48164,6 @@ function toggleCharts() {
 }
 
 function initCharts() {
-    // 按年份统计
     const years = {};
     nodes.forEach(n => { if(n.year > 1900) years[n.year] = (years[n.year]||0)+1; });
     const sortedYears = Object.keys(years).sort();
@@ -48185,7 +48177,6 @@ function initCharts() {
         series: [{data: sortedYears.map(y=>years[y]), type: 'line', smooth: true, areaStyle: {color: 'rgba(88, 166, 255, 0.2)'}, itemStyle: {color: '#58a6ff'}}]
     });
 
-    // 按分类统计
     const cats = {};
     nodes.forEach(n => { cats[n.primary_category] = (cats[n.primary_category]||0)+1; });
     const catData = Object.entries(cats).map(([k,v]) => ({name: k.replace(/^.*_/,''), value: v})).sort((a,b)=>b.value-a.value);
@@ -48205,4 +48196,4 @@ function initCharts() {
 }
 </script>
 </body>
-</html>"
+</html>
