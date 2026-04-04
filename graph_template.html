@@ -2,94 +2,188 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>游戏科学论文空间图谱</title>
+<title>Game Science Knowledge Graph</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0b0e14; color: #e6edf3; font-family: -apple-system, sans-serif; overflow: hidden; }
-  #app { width: 100vw; height: 100vh; position: relative; }
-  canvas { cursor: move; }
+  body { background: #0b0e14; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+  #app { width: 100vw; height: 100vh; position: relative; display: flex; }
+  canvas { position: absolute; top: 0; left: 0; z-index: 1; cursor: grab; }
+  canvas:active { cursor: grabbing; }
 
-  /* 状态栏 */
-  #header { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; display: flex; align-items: center; padding: 0 20px; z-index: 100; pointer-events: none; }
-  #title { font-size: 16px; font-weight: bold; color: #58a6ff; }
-  .stats-badge { background: #21262d; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-left: 15px; color: #8b949e; }
+  /* 左侧边栏：图例与文献列表 */
+  #sidebar-left { width: 300px; min-width: 300px; background: rgba(13,17,23,0.85); border-right: 1px solid #30363d; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(10px); }
+  .sb-header { padding: 15px 20px; border-bottom: 1px solid #30363d; font-size: 16px; font-weight: bold; color: #58a6ff; display: flex; justify-content: space-between; align-items: center; }
+  #legend-list { padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; flex-wrap: wrap; gap: 10px; }
+  .legend-item { display: flex; align-items: center; font-size: 12px; color: #8b949e; cursor: pointer; }
+  .legend-color { width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
+  #paper-list { flex: 1; overflow-y: auto; padding: 10px; }
+  .list-item { padding: 10px; border-bottom: 1px solid #21262d; font-size: 12px; cursor: pointer; transition: 0.2s; border-radius: 6px; }
+  .list-item:hover { background: #21262d; }
+  .list-title { color: #c9d1d9; margin-bottom: 5px; line-height: 1.4; }
+  .list-meta { color: #8b949e; font-size: 11px; display: flex; justify-content: space-between; }
 
-  /* 论文档案面板 */
-  #detail-panel {
-    position: absolute; right: 20px; top: 70px; bottom: 30px;
-    width: 350px; background: rgba(13,17,23,0.9); border: 1px solid #30363d;
-    border-radius: 12px; display: none; flex-direction: column;
-    z-index: 1000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); backdrop-filter: blur(15px);
-  }
-  .detail-header { padding: 20px; border-bottom: 1px solid #30363d; }
-  .detail-title { color: #58a6ff; font-size: 17px; font-weight: bold; line-height: 1.4; }
-  .detail-meta { color: #8b949e; font-size: 12px; margin-top: 8px; }
-  .detail-body { overflow-y: auto; flex: 1; padding: 20px; font-size: 13px; line-height: 1.6; color: #adbac7; }
-  .detail-label { color: #f78166; font-weight: bold; margin-top: 15px; display: block; font-size: 11px; text-transform: uppercase; }
-  .detail-text { margin-top: 5px; text-align: justify; }
-  .detail-link { display: block; background: #238636; color: #fff; padding: 10px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; margin-top: 10px; }
-  .close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #8b949e; font-size: 18px; cursor: pointer; }
+  /* 右侧边栏：论文档案与图表 */
+  #sidebar-right { width: 360px; min-width: 360px; background: rgba(13,17,23,0.85); border-left: 1px solid #30363d; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(10px); position: absolute; right: 0; top: 0; bottom: 0; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  #sidebar-right.active { transform: translateX(0); }
+  .detail-body { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #adbac7; }
+  .detail-body::-webkit-scrollbar { width: 6px; }
+  .detail-body::-webkit-scrollbar-thumb { background-color: #484f58; border-radius: 3px; }
+  .detail-title { color: #e6edf3; font-size: 18px; font-weight: bold; line-height: 1.4; margin-bottom: 15px; }
+  .detail-meta-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+  .meta-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #21262d; padding-bottom: 8px; }
+  .meta-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+  .meta-label { color: #8b949e; }
+  .meta-val { color: #79c0ff; font-weight: bold; text-align: right; width: 60%; }
+  .detail-label { color: #f78166; font-weight: bold; margin-bottom: 8px; display: block; font-size: 12px; text-transform: uppercase; }
+  .detail-text { text-align: justify; margin-bottom: 20px; }
+  .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
+  .detail-link-btn:hover { background: #2ea043; }
+  .close-btn { background: none; border: none; color: #8b949e; font-size: 22px; cursor: pointer; }
 
-  #tooltip { position: absolute; pointer-events: none; background: rgba(22, 27, 34, 0.9); border: 1px solid #58a6ff; border-radius: 6px; padding: 8px 12px; font-size: 12px; display: none; z-index: 2000; }
+  /* 底部图表托盘 */
+  #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; }
+  #charts-btn:hover { background: #30363d; color: #fff; }
+  #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 0; height: 280px; background: rgba(22, 27, 34, 0.95); border-top: 1px solid #30363d; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(10px); }
+  #charts-tray.active { bottom: 0; }
+  .chart-box { flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; }
+  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 10px; font-weight: bold; text-align: center; }
+  .chart-canvas { flex: 1; }
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="header">
-    <div id="title">🎮 Game Engineering Space Graph</div>
-    <div class="stats-badge">文献总量: <span id="count-n">-</span></div>
-    <div style="margin-left:auto; font-size:12px; color:#8b949e">提示：点击圆点激活关联路径</div>
+  <!-- 左侧：图例与文献列表 -->
+  <div id="sidebar-left">
+    <div class="sb-header">
+      <span>🎮 GamePaper Space</span>
+      <span style="font-size:12px; color:#8b949e; font-weight:normal;"><span id="count-n">-</span> 篇</span>
+    </div>
+    <div id="legend-list"></div>
+    <div style="padding:10px 20px; font-size:12px; color:#8b949e; border-bottom:1px solid #30363d; background:#0d1117;">
+      文献列表 (按年份降序)
+    </div>
+    <div id="paper-list"></div>
   </div>
 
+  <!-- 中间：画布 -->
   <canvas id="main-canvas"></canvas>
-  <div id="tooltip"></div>
+  <button id="charts-btn" onclick="toggleCharts()">📊 展开历年统计图表</button>
 
-  <div id="detail-panel">
-    <button class="close-btn" onclick="this.parentElement.style.display='none'">×</button>
-    <div class="detail-header">
-      <div class="detail-title" id="d-title">-</div>
-      <div class="detail-meta" id="d-meta">-</div>
+  <!-- 底部：图表托盘 -->
+  <div id="charts-tray">
+    <div class="chart-box">
+      <div class="chart-title">历年发文量趋势</div>
+      <div class="chart-canvas" id="chart-years"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">研究领域分布</div>
+      <div class="chart-canvas" id="chart-cats"></div>
+    </div>
+  </div>
+
+  <!-- 右侧：详情面板 -->
+  <div id="sidebar-right">
+    <div class="sb-header">
+      <span>论文档案</span>
+      <button class="close-btn" onclick="closeDetail()">×</button>
     </div>
     <div class="detail-body">
-      <a id="d-link" class="detail-link" href="#" target="_blank">🚀 查看原文 (ACM/IEEE/Scholar)</a>
-      <span class="detail-label">摘要提要</span>
+      <div class="detail-title" id="d-title">-</div>
+      <div class="detail-meta-box">
+        <div class="meta-row"><span class="meta-label">👤 作者</span><span class="meta-val" id="d-author">-</span></div>
+        <div class="meta-row"><span class="meta-label">📅 年份</span><span class="meta-val" id="d-year">-</span></div>
+        <div class="meta-row"><span class="meta-label">🏷️ 领域</span><span class="meta-val" id="d-cat">-</span></div>
+        <div class="meta-row"><span class="meta-label">🎖️ 会议评级</span><span class="meta-val" id="d-tier" style="color:#e3b341">-</span></div>
+        <div class="meta-row"><span class="meta-label">🔥 被引次数</span><span class="meta-val" id="d-cite" style="color:#f85149">-</span></div>
+      </div>
+      <span class="detail-label">核心摘要</span>
       <div class="detail-text" id="d-abs">-</div>
-      <span class="detail-label">顶会评级 & 被引</span>
-      <div class="detail-text" id="d-tier">-</div>
+      <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 前往 Google Scholar 查看原文</a>
     </div>
   </div>
 </div>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script>
 const G = {GRAPH_DATA};
+
+// 1. 数据预处理 (ConnectedPapers 风格)
+// 剔除大类节点，纯粹展示论文节点
+let nodes = G.nodes.filter(n => n.type === 'paper');
+// 剔除 paper_cat 边，只保留 paper_sim 边
+let edges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
+
+const categories = G.nodes.filter(n => n.type === 'category');
+const catMap = new Map(categories.map(c => [c.cat_id, c]));
+
+// 动态计算每个论文节点的半径（根据被引量，最小4，最大20）
+const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
+nodes.forEach(n => {
+    // 平滑的开方映射
+    n.r = 4 + 16 * Math.sqrt((n.citations || 0) / maxCites);
+    // 为文字防碰撞预留隐形半径：文字越长，排斥力越大
+    n.collideR = n.r + (n.label ? n.label.length * 3.5 : 10) + 5;
+});
+
+// 2. 初始化 UI (左侧列表与图例)
+const legendBox = document.getElementById('legend-list');
+categories.forEach(c => {
+    legendBox.innerHTML += `<div class="legend-item"><div class="legend-color" style="background:${c.color}"></div>${c.label}</div>`;
+});
+
+const paperBox = document.getElementById('paper-list');
+nodes.sort((a,b) => (b.year||0) - (a.year||0)).forEach(p => {
+    const catColor = catMap.get(p.primary_category)?.color || '#8b949e';
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `
+        <div class="list-title">${p.label}</div>
+        <div class="list-meta">
+            <span style="color:${catColor}">● ${p.primary_category.replace(/^.*_/,'')}</span>
+            <span>${p.year||'未知'} | 被引:${p.citations||0}</span>
+        </div>
+    `;
+    el.onclick = () => { 
+        focusNode(p.id);
+        showDetail(p);
+    };
+    paperBox.appendChild(el);
+});
+
+// 3. Canvas 渲染核心
 const canvas = document.querySelector('#main-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
-const tt = document.querySelector('#tooltip');
 let width, height, transform = d3.zoomIdentity;
-let nodes = G.nodes, edges = G.edges;
-let selectedNode = null, hoveredNode = null;
-
-// 初始化
-document.getElementById('count-n').innerText = nodes.length;
+let hoveredNode = null, selectedNode = null;
 
 function resize() {
-  width = window.innerWidth; height = window.innerHeight;
-  canvas.width = width * window.devicePixelRatio; canvas.height = height * window.devicePixelRatio;
-  canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    // 画布宽度要减去左侧边栏的宽度
+    width = window.innerWidth - 300;
+    height = window.innerHeight;
+    canvas.width = width * window.devicePixelRatio;
+    canvas.height = height * window.devicePixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    canvas.style.marginLeft = '300px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 }
 window.addEventListener('resize', resize); resize();
 
-// 1. 强化力学仿真：让节点彻底散开
+// 4. 力学仿真 (极强碰撞、防重叠)
+// 根据 ConnectedPapers 经验：多体斥力强，连线拉力适中，碰撞半径极大
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(edges).id(d => d.id).distance(150).strength(0.2))
-  .force("charge", d3.forceManyBody().strength(-350).distanceMax(800)) // 极强斥力
+  .force("link", d3.forceLink(edges).id(d => d.id).distance(120).strength(0.15))
+  .force("charge", d3.forceManyBody().strength(-400).distanceMax(1000))
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => (d.r || 5) + 25)) // 增大呼吸空间
-  .on("tick", render);
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2)) // 使用文字宽度作为碰撞半径
+  .force("x", d3.forceX(width / 2).strength(0.05))
+  .force("y", d3.forceY(height / 2).strength(0.05));
 
-// 2. 高性能 Canvas 渲染
+// 预演 150 次，页面打开时就是稳定状态！
+for (let i = 0; i < 150; ++i) simulation.tick();
+simulation.on("tick", render);
+
 function render() {
   ctx.save();
   ctx.fillStyle = "#0b0e14";
@@ -97,96 +191,179 @@ function render() {
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
-  // 只有在有节点被选中或悬浮时，才绘制该节点相关的线（动态连线）
   const active = selectedNode || hoveredNode;
+  let activeEdges = [];
+  let relatedNodes = new Set();
+
   if (active) {
-    ctx.beginPath();
-    ctx.strokeStyle = "rgba(88, 166, 255, 0.6)";
-    ctx.lineWidth = 1.2 / transform.k;
-    edges.forEach(e => {
-      if (e.source.id === active.id || e.target.id === active.id) {
-        ctx.moveTo(e.source.x, e.source.y);
-        ctx.lineTo(e.target.x, e.target.y);
-      }
-    });
-    ctx.stroke();
+      relatedNodes.add(active.id);
+      edges.forEach(e => {
+          if (e.source.id === active.id || e.target.id === active.id) {
+              activeEdges.push(e);
+              relatedNodes.add(e.source.id); relatedNodes.add(e.target.id);
+          }
+      });
   }
 
-  // 绘制节点
+  // A. 绘制常规线 (常驻，极淡)
+  ctx.beginPath();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.05)"; // 极淡的白线
+  ctx.lineWidth = 0.5 / transform.k;
+  edges.forEach(e => {
+      ctx.moveTo(e.source.x, e.source.y);
+      ctx.lineTo(e.target.x, e.target.y);
+  });
+  ctx.stroke();
+
+  // B. 绘制高亮线 (当前激活节点的连线)
+  if (activeEdges.length > 0) {
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(88, 166, 255, 0.8)"; // 亮蓝色
+      ctx.lineWidth = 2.0 / transform.k;
+      activeEdges.forEach(e => {
+          ctx.moveTo(e.source.x, e.source.y);
+          ctx.lineTo(e.target.x, e.target.y);
+      });
+      ctx.stroke();
+  }
+
+  // C. 绘制节点与文字
   nodes.forEach(n => {
-    ctx.beginPath();
-    ctx.fillStyle = n.color || "#58a6ff";
-    
-    // 空间分层：非相关节点变淡
-    if (active) {
-      const isRelated = n.id === active.id || edges.some(e => 
-        (e.source.id === active.id && e.target.id === n.id) || (e.target.id === active.id && e.source.id === n.id)
-      );
-      ctx.globalAlpha = isRelated ? 1 : 0.15;
-    } else {
-      ctx.globalAlpha = n.type === 'category' ? 0.4 : 0.85;
-    }
+      const isActive = active ? relatedNodes.has(n.id) : true;
+      const alpha = isActive ? 0.95 : 0.15;
+      
+      // 节点
+      ctx.beginPath();
+      ctx.fillStyle = n.color || "#8b949e";
+      ctx.globalAlpha = alpha;
+      ctx.arc(n.x, n.y, n.r, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // 给节点加个深色描边，增加立体感
+      ctx.lineWidth = 1.5 / transform.k;
+      ctx.strokeStyle = "#0b0e14";
+      ctx.stroke();
 
-    const r = n.type === 'category' ? 15 : (n.r || 5);
-    ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // 绘制文字（分类名称常驻，论文标题仅在激活时显示）
-    if (n.type === 'category' || (active && ctx.globalAlpha > 0.5)) {
-      ctx.font = `${n.type==='category'?'bold 14px':'11px'} sans-serif`;
-      ctx.fillStyle = "#e6edf3";
-      ctx.fillText(n.label, n.x + r + 5, n.y + 4);
-    }
+      // 文字 (常驻显示，错落有致)
+      // 只有在节点足够大，或者被激活，或者层级较高(S级)时才显示粗体
+      const isBold = n.tier === 'S' || n.id === (active && active.id);
+      ctx.font = `${isBold ? 'bold ' : ''}${Math.max(10, 10/transform.k)}px sans-serif`;
+      ctx.fillStyle = isActive ? "#e6edf3" : "#484f58";
+      ctx.fillText(n.label, n.x + n.r + 4, n.y + 4);
   });
 
   ctx.restore();
 }
 
-// 3. 交互逻辑 (缩放/悬浮/点击)
-const zoom = d3.zoom().scaleExtent([0.02, 10]).on("zoom", (e) => { transform = e.transform; render(); });
-d3.select(canvas).call(zoom);
+// 5. 交互：缩放、拖拽与点击
+const zoomObj = d3.zoom().scaleExtent([0.1, 8]).on("zoom", (e) => { transform = e.transform; render(); });
+d3.select(canvas).call(zoomObj);
+
+// 自动适配视口，将所有节点居中
+function autoFit() {
+    const minX = d3.min(nodes, n=>n.x) - 100, maxX = d3.max(nodes, n=>n.x) + 100;
+    const minY = d3.min(nodes, n=>n.y) - 100, maxY = d3.max(nodes, n=>n.y) + 100;
+    const dx = maxX - minX, dy = maxY - minY;
+    const scale = Math.max(0.1, Math.min(8, 0.9 * Math.min(width / dx, height / dy)));
+    const tx = width / 2 - scale * (minX + maxX) / 2;
+    const ty = height / 2 - scale * (minY + maxY) / 2;
+    d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+}
+setTimeout(autoFit, 100);
+
+function focusNode(id) {
+    const n = nodes.find(x => x.id === id);
+    if(!n) return;
+    selectedNode = n;
+    // 居中放大该节点
+    d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.5, height/2 - n.y*1.5).scale(1.5));
+    render();
+}
 
 canvas.addEventListener('mousemove', e => {
   const [mx, my] = [(e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k];
-  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 10) + 5);
-  
+  // 扩大一点拾取半径方便选中
+  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 5) + 6 / transform.k);
   if (found !== hoveredNode) {
     hoveredNode = found;
-    if (found) {
-      tt.style.display = 'block';
-      tt.style.left = e.pageX + 15 + 'px'; tt.style.top = e.pageY + 15 + 'px';
-      tt.innerHTML = `<strong>${found.full_title || found.label}</strong><br>被引: ${found.citations || 0}`;
-    } else {
-      tt.style.display = 'none';
-    }
+    canvas.style.cursor = found ? 'pointer' : 'grab';
     render();
   }
 });
 
 canvas.addEventListener('click', () => {
-  if (hoveredNode && hoveredNode.type !== 'category') {
-    selectedNode = hoveredNode; showDetail(selectedNode);
+  if (hoveredNode) {
+    selectedNode = hoveredNode; 
+    showDetail(selectedNode);
   } else {
-    selectedNode = null; document.querySelector('#detail-panel').style.display = 'none';
+    selectedNode = null; 
+    closeDetail();
   }
   render();
 });
 
 function showDetail(d) {
-  const panel = document.querySelector('#detail-panel');
-  panel.style.display = 'flex';
-  document.querySelector('#d-title').innerText = d.full_title;
-  document.querySelector('#d-meta').innerText = `👤 ${d.author || '未知'}  •  🏷️ ${d.primary_category}`;
-  document.querySelector('#d-abs').innerText = d.abstract || '暂无摘要内容。';
-  document.querySelector('#d-tier').innerText = `层级: ${d.tier}级  |  🔥 被引用: ${d.citations}次`;
-  const link = document.querySelector('#d-link');
+  const panel = document.getElementById('sidebar-right');
+  panel.classList.add('active');
+  document.getElementById('d-title').innerText = d.full_title;
+  document.getElementById('d-author').innerText = d.author || '-';
+  document.getElementById('d-year').innerText = d.year || '-';
+  document.getElementById('d-cat').innerText = d.primary_category.replace(/^.*_/,'');
+  document.getElementById('d-tier').innerText = d.tier || 'C';
+  document.getElementById('d-cite').innerText = d.citations || '0';
+  document.getElementById('d-abs').innerText = d.abstract || '暂无摘要。';
+  const link = document.getElementById('d-link');
   if (d.source_url) { link.href = d.source_url; link.style.display = 'block'; } else { link.style.display = 'none'; }
 }
 
-// 预加速：进入即稳定
-for (let i = 0; i < 200; ++i) simulation.tick();
-render();
+function closeDetail() {
+  document.getElementById('sidebar-right').classList.remove('active');
+}
 
+// 6. 底部图表逻辑 (ECharts)
+let chartsInited = false;
+function toggleCharts() {
+  const tray = document.getElementById('charts-tray');
+  tray.classList.toggle('active');
+  if(tray.classList.contains('active') && !chartsInited) {
+      initCharts();
+      chartsInited = true;
+  }
+}
+
+function initCharts() {
+    // 按年份统计
+    const years = {};
+    nodes.forEach(n => { if(n.year > 1900) years[n.year] = (years[n.year]||0)+1; });
+    const sortedYears = Object.keys(years).sort();
+    
+    const yChart = echarts.init(document.getElementById('chart-years'));
+    yChart.setOption({
+        tooltip: {trigger: 'axis'},
+        grid: {top: 20, right: 20, bottom: 20, left: 30},
+        xAxis: {type: 'category', data: sortedYears, axisLabel: {color: '#8b949e'}},
+        yAxis: {type: 'value', splitLine: {lineStyle: {color: '#30363d'}}, axisLabel: {color: '#8b949e'}},
+        series: [{data: sortedYears.map(y=>years[y]), type: 'line', smooth: true, areaStyle: {color: 'rgba(88, 166, 255, 0.2)'}, itemStyle: {color: '#58a6ff'}}]
+    });
+
+    // 按分类统计
+    const cats = {};
+    nodes.forEach(n => { cats[n.primary_category] = (cats[n.primary_category]||0)+1; });
+    const catData = Object.entries(cats).map(([k,v]) => ({name: k.replace(/^.*_/,''), value: v})).sort((a,b)=>b.value-a.value);
+    
+    const cChart = echarts.init(document.getElementById('chart-cats'));
+    cChart.setOption({
+        tooltip: {trigger: 'item'},
+        series: [{
+            type: 'pie', radius: ['40%', '70%'], avoidLabelOverlap: false,
+            itemStyle: { borderRadius: 4, borderColor: '#0d1117', borderWidth: 2 },
+            label: { show: false },
+            data: catData
+        }]
+    });
+    
+    window.addEventListener('resize', () => { yChart.resize(); cChart.resize(); });
+}
 </script>
 </body>
-</html>
+</html>"
