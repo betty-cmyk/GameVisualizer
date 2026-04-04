@@ -77,6 +77,8 @@ def main():
             'abstract': p.get('abstract', ''),
             'citations': p.get('citations', 0),
             'tier': p.get('tier', 'C'),
+            'openalex_id': p.get('openalex_id', ''),
+            'references_list': p.get('references_list', '[]'),
             '_tokens': token_set,
         }
         nodes.append(node)
@@ -87,8 +89,8 @@ def main():
             c_idx = cat_node_id[c_id]
             nodes[c_idx]['count'] += 1
             nodes[c_idx]['papers'].append({'title': title, 'year': p.get('year', '')})
-            # 彻底去掉类别聚拢边，防止同类强行挤在一团！只保留纯碎的论文相似连线
 
+    # 1. 语义相似度网络 (底层物理引力线)
     paper_sim_list = []
     for i in range(len(paper_nodes)):
         ni = paper_nodes[i]
@@ -97,7 +99,6 @@ def main():
         for j in range(i + 1, len(paper_nodes)):
             nj = paper_nodes[j]
             sim = jaccard_sim(ti, nj['_tokens'])
-            # 降低阈值让连线多一点，避免过于离散
             if sim > 0.08:
                 potential_edges.append({'source': ni['id'], 'target': nj['id'], 'weight': sim * 5, 'type': 'paper_sim', 'val': sim})
         
@@ -105,6 +106,29 @@ def main():
         paper_sim_list.extend(potential_edges[:5])
 
     edges.extend(paper_sim_list)
+
+    # 2. 真实引文网络 (只渲染，不参与物理计算！)
+    oa_to_pid = {}
+    for n in paper_nodes:
+        oa_id = str(n.get('openalex_id', '')).split('/')[-1] 
+        if oa_id and oa_id != 'NOT_FOUND':
+            oa_to_pid[oa_id] = n['id']
+            
+    citation_edges_count = 0
+    for n in paper_nodes:
+        ref_str = n.get('references_list', '[]')
+        if not ref_str: continue
+        try:
+            refs = json.loads(ref_str)
+            for ref_oa_id in refs:
+                target_pid = oa_to_pid.get(ref_oa_id)
+                if target_pid:
+                    edges.append({'source': n['id'], 'target': target_pid, 'weight': 1, 'type': 'paper_citation'})
+                    citation_edges_count += 1
+        except:
+            pass
+            
+    print(f"[!] 本地知识图谱内发现真实交叉引用边 (Citation Edges): {citation_edges_count} 条")
 
     for n in nodes:
         if '_tokens' in n: del n['_tokens']
