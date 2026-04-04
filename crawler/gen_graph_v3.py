@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os, json, re
+from collections import defaultdict
+from itertools import combinations
 
 CRAWLER_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(CRAWLER_DIR, '..', 'data')
@@ -8,14 +10,14 @@ OUT_JSON = os.path.join(DATA_DIR, 'graph_v3.json')
 
 # === 游戏科学 8 大核心领域 ===
 CATEGORIES = {
-    'Game AI': {'label': '游戏人工智能', 'color': '#ff7b72'}, # 红
-    'PCG': {'label': '程序化内容生成', 'color': '#ffa657'}, # 橙
-    'Rendering': {'label': '实时渲染与图形', 'color': '#79c0ff'}, # 蓝
-    'Animation': {'label': '动画与运动合成', 'color': '#56d364'}, # 绿
-    'Simulation & Physics': {'label': '物理仿真与碰撞', 'color': '#d2a8ff'}, # 紫
-    'HCI/UX in Games': {'label': '人机交互与体验', 'color': '#e3b341'}, # 黄
-    'Networking & Systems': {'label': '网络同步与系统', 'color': '#76e3ea'}, # 青
-    'Game Analytics': {'label': '游戏分析与运筹', 'color': '#89d4f5'}, # 浅蓝
+    'Game AI': {'label': '游戏人工智能', 'color': '#ff7b72'}, 
+    'PCG': {'label': '程序化内容生成', 'color': '#ffa657'}, 
+    'Rendering': {'label': '实时渲染与图形', 'color': '#79c0ff'}, 
+    'Animation': {'label': '动画与运动合成', 'color': '#56d364'}, 
+    'Simulation & Physics': {'label': '物理仿真与碰撞', 'color': '#d2a8ff'}, 
+    'HCI/UX in Games': {'label': '人机交互与体验', 'color': '#e3b341'}, 
+    'Networking & Systems': {'label': '网络同步与系统', 'color': '#76e3ea'}, 
+    'Game Analytics': {'label': '游戏分析与运筹', 'color': '#89d4f5'},
 }
 
 def jaccard_sim(a, b):
@@ -25,9 +27,7 @@ def jaccard_sim(a, b):
 
 def main():
     import sqlite3
-    if not os.path.exists(DB_PATH): 
-        print("Database not found!")
-        return
+    if not os.path.exists(DB_PATH): return
         
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -53,12 +53,11 @@ def main():
 
     for p in papers:
         title = p.get('title', '')
-        cats = [p.get('category_9', 'Game AI')] # 默认读库里打好的标
+        cats = [p.get('category_9', 'Game AI')]
         if cats[0] not in CATEGORIES: cats[0] = 'Game AI'
         primary = cats[0]
         pid = idx
 
-        # 简易分词用于连线
         words = re.findall(r'[a-zA-Z]{3,}|[\u4e00-\u9fa5]{2,}', title + " " + (p.get('abstract','') or ''))
         token_set = set(w.lower() for w in words if len(w)>2)
 
@@ -66,6 +65,7 @@ def main():
             'id': pid,
             'label': (title[:20] + '...') if len(title) > 20 else title,
             'full_title': title,
+            'title_zh': p.get('title_zh', ''),
             'type': 'paper',
             'color': CATEGORIES[primary]['color'],
             'count': 1, 'r': 4,
@@ -75,7 +75,8 @@ def main():
             'author': p.get('author', ''),
             'source_url': p.get('source_url', ''),
             'abstract': p.get('abstract', ''),
-            'outline': p.get('outline', ''),
+            'citations': p.get('citations', 0),
+            'tier': p.get('tier', 'C'),
             '_tokens': token_set,
         }
         nodes.append(node)
@@ -86,10 +87,8 @@ def main():
             c_idx = cat_node_id[c_id]
             nodes[c_idx]['count'] += 1
             nodes[c_idx]['papers'].append({'title': title, 'year': p.get('year', '')})
-            # 恢复引力线，但在前端隐藏，用来约束星云的物理位置
-            edges.append({'source': pid, 'target': c_idx, 'weight': 1.0, 'type': 'paper_cat'})
+            # 彻底去掉类别聚拢边，防止同类强行挤在一团！只保留纯碎的论文相似连线
 
-    # 论文之间关联优化：提高阈值，且每个节点只保留 Top-5 最强关联，防止边爆炸
     paper_sim_list = []
     for i in range(len(paper_nodes)):
         ni = paper_nodes[i]
@@ -98,10 +97,10 @@ def main():
         for j in range(i + 1, len(paper_nodes)):
             nj = paper_nodes[j]
             sim = jaccard_sim(ti, nj['_tokens'])
-            if sim > 0.2: # 阈值从 0.08 提高到 0.2
+            # 降低阈值让连线多一点，避免过于离散
+            if sim > 0.08:
                 potential_edges.append({'source': ni['id'], 'target': nj['id'], 'weight': sim * 5, 'type': 'paper_sim', 'val': sim})
         
-        # 每个节点只贡献它最相关的 5 条边
         potential_edges.sort(key=lambda x: x['val'], reverse=True)
         paper_sim_list.extend(potential_edges[:5])
 
