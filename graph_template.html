@@ -1,289 +1,218 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+"<!DOCTYPE html>
+<html lang=\"zh-CN\">
 <head>
-<meta charset="UTF-8">
-<title>化工安全论文关联图</title>
+<meta charset=\"UTF-8\">
+<title>游戏科学与图形学知识图谱 - 极速版</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0d1117; color: #e6edf3; font-family: 'Noto Sans SC', sans-serif; overflow: hidden; }
+  body { background: #0b0e14; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
   #app { width: 100vw; height: 100vh; position: relative; }
-  svg { width: 100%; height: 100%; }
+  canvas { cursor: crosshair; }
 
-  /* 图例 */
-  #legend {
-    position: absolute; top: 20px; left: 20px;
-    background: rgba(22,27,34,0.92); border: 1px solid #30363d;
-    border-radius: 10px; padding: 14px 18px; font-size: 13px;
-  }
-  #legend h3 { font-size: 14px; margin-bottom: 10px; color: #79c0ff; letter-spacing: 1px; }
-  .leg-item { display: flex; align-items: center; gap: 8px; margin: 5px 0; }
-  .leg-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+  /* 顶部状态栏 */
+  #header { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; display: flex; align-items: center; padding: 0 20px; z-index: 100; }
+  #title { font-size: 16px; font-weight: bold; color: #58a6ff; }
+  .stats-badge { background: #21262d; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-left: 15px; color: #8b949e; border: 1px solid #30363d; }
 
-  /* 统计面板 */
-  #stats {
-    position: absolute; top: 20px; right: 20px;
-    background: rgba(22,27,34,0.92); border: 1px solid #30363d;
-    border-radius: 10px; padding: 14px 18px; font-size: 13px; min-width: 200px;
-  }
-  #stats h3 { font-size: 14px; margin-bottom: 10px; color: #79c0ff; }
-  .stat-row { display: flex; justify-content: space-between; padding: 3px 0;
-              border-bottom: 1px solid #21262d; }
-  .stat-val { color: #f78166; font-weight: bold; }
+  /* 详情面板 (增强版) */
+  #detail-panel { position: absolute; right: 20px; top: 70px; bottom: 30px; width: 380px; background: rgba(13, 17, 23, 0.95); border: 1px solid #30363d; border-radius: 12px; padding: 0; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 15px 35px rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+  .detail-header { padding: 20px; border-bottom: 1px solid #30363d; }
+  .detail-title { color: #58a6ff; font-size: 18px; font-weight: bold; line-height: 1.4; }
+  .detail-meta { color: #8b949e; font-size: 13px; margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+  .detail-body { overflow-y: auto; flex: 1; padding: 20px; font-size: 14px; line-height: 1.7; }
+  .detail-label { color: #f78166; font-weight: bold; margin-top: 20px; margin-bottom: 8px; display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .detail-text { color: #c9d1d9; text-align: justify; }
+  .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
+  .detail-link-btn:hover { background: #2ea043; }
+  .close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #8b949e; font-size: 20px; cursor: pointer; }
 
-
-    /* 详情面板 */
-  #detail-panel {
-    position: absolute; right: 20px; top: 120px; bottom: 80px;
-    width: 320px; background: rgba(22,27,34,0.95); border: 1px solid #30363d;
-    border-radius: 10px; padding: 18px; display: none; flex-direction: column;
-    z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  }
-  .detail-title { color: #79c0ff; font-size: 15px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #30363d; padding-bottom: 8px; }
-  .detail-body { overflow-y: auto; flex: 1; font-size: 12px; line-height: 1.5; }
-  .detail-label { color: #f78166; margin-top: 12px; display: block; font-weight: bold; }
-  .detail-text { color: #c9d1d9; white-space: pre-wrap; margin-top: 4px; }
-
-  /* tooltip */
-  #tooltip {
-    position: absolute; pointer-events: none;
-    background: rgba(22,27,34,0.95); border: 1px solid #388bfd;
-    border-radius: 8px; padding: 10px 14px; font-size: 13px;
-    max-width: 260px; display: none; line-height: 1.6;
-  }
-  #tooltip .tt-title { font-weight: bold; color: #79c0ff; margin-bottom: 4px; }
-
-  /* 控制栏 */
-  #controls {
-    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 10px;
-  }
-  button {
-    background: #21262d; border: 1px solid #30363d; color: #e6edf3;
-    border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 13px;
-    transition: background .2s;
-  }
-  button:hover { background: #388bfd; border-color: #388bfd; }
-  button.active { background: #388bfd; border-color: #388bfd; }
+  /* 提示框 */
+  #tooltip { position: absolute; pointer-events: none; background: rgba(22, 27, 34, 0.9); border: 1px solid #58a6ff; border-radius: 6px; padding: 8px 12px; font-size: 13px; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
 </style>
 </head>
 <body>
-<div id="app">
-  <svg id="svg">
-    <defs>
-      <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-        <path d="M0,0 L0,6 L8,3 z" fill="#444d56"/>
-      </marker>
-    </defs>
-    <g id="root">
-      <g id="g-edges"></g>
-      <g id="g-nodes"></g>
-    </g>
-  </svg>
-
-  <div id="legend">
-    <h3>图例</h3>
-    <div class="leg-item"><div class="leg-dot" style="background:#f78166"></div> 搜索关键词</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#79c0ff"></div> 研究方向</div>
-    <div class="leg-item"><div class="leg-dot" style="background:#56d364"></div> 发表年份</div>
-    <div style="margin-top:10px;color:#8b949e;font-size:12px">节点大小 = 论文数量<br>线宽 = 关联强度<br>滚轮缩放 · 拖拽平移</div>
+<div id=\"app\">
+  <div id=\"header\">
+    <div id=\"title\">🎮 GamePaper Visualizer</div>
+    <div class=\"stats-badge\">节点: <span id=\"count-n\">-</span></div>
+    <div class=\"stats-badge\">关联: <span id=\"count-e\">-</span></div>
+    <div style=\"margin-left:auto; font-size:12px; color:#8b949e\">滚轮缩放 • 拖拽平移 • 点击气泡查看详情</div>
   </div>
 
-  <div id="stats">
-    <h3>数据统计</h3>
-    <div class="stat-row"><span>有效论文</span><span class="stat-val" id="s-total">-</span></div>
-    <div class="stat-row"><span>搜索词</span><span class="stat-val" id="s-kw">-</span></div>
-    <div class="stat-row"><span>研究方向</span><span class="stat-val" id="s-dir">-</span></div>
-    <div class="stat-row"><span>关联边</span><span class="stat-val" id="s-edge">-</span></div>
-  </div>
+  <canvas id=\"main-canvas\"></canvas>
 
-  <div id="tooltip"></div>
+  <div id=\"tooltip\"></div>
 
-  <div id="detail-panel">
-        <div class="detail-title" id="d-title">标题</div>
-    <div class="detail-body">
-       <span class="detail-label" style="margin-top:0;">链接</span>
-       <div class="detail-text"><a id="d-link" href="#" target="_blank" style="color:#58a6ff; text-decoration:none; word-break:break-all;">查看原文</a></div>
-       <span class="detail-label">摘要</span>
-       <div class="detail-text" id="d-abs"></div>
-       <span class="detail-label">大纲</span>
-       <div class="detail-text" id="d-out"></div>
+  <div id=\"detail-panel\">
+    <button class=\"close-btn\" onclick=\"this.parentElement.style.display='none'\">×</button>
+    <div class=\"detail-header\">
+      <div class=\"detail-title\" id=\"d-title\">-</div>
+      <div class=\"detail-meta\">\n        <span id=\"d-author-year\"></span>\n        <span id=\"d-category\" style=\"color:#89d4f5;\"></span>\n      </div>
     </div>
-    <button onclick="document.getElementById('detail-panel').style.display='none'" style="margin-top:10px;width:100%;background:#238636;border:none;color:white;padding:8px;border-radius:6px;cursor:pointer;">关闭详情</button>
-  </div>
-
-  <div id="controls">
-    <button id="btn-all" class="active" onclick="filterType('all')">全部</button>
-    <button id="btn-kw"  onclick="filterType('kw')">搜索词层</button>
-    <button id="btn-dir" onclick="filterType('dir')">方向层</button>
-    <button id="btn-yr"  onclick="filterType('yr')">年份层</button>
-    <button onclick="resetZoom()">重置视图</button>
+    <div class=\"detail-body\">
+      <a id=\"d-link\" class=\"detail-link-btn\" href=\"#\" target=\"_blank\">🚀 查看学术原文 / PDF</a>
+      <span class=\"detail-label\">摘要</span>
+      <div class=\"detail-text\" id=\"d-abs\">-</div>
+    </div>
   </div>
 </div>
 
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src=\"https://d3js.org/d3.v7.min.js\"></script>
 <script>
-const COLOR = { keyword:'#f78166', direction:'#79c0ff', year:'#56d364' };
-const TYPE_KEY = { keyword:'kw', direction:'dir', year:'yr' };
+const G = {GRAPH_DATA};
+const canvas = document.querySelector('#main-canvas');
+const ctx = canvas.getContext('2d', { alpha: false }); // 禁用 Alpha 提升性能
+const tt = document.querySelector('#tooltip');
+let width, height, transform = d3.zoomIdentity;
+let nodes = G.nodes, edges = G.edges;
+let hoveredNode = null, selectedNode = null;
 
-let allNodes, allEdges, simulation, svg, root, zoomBehavior;
-let currentFilter = 'all';
+// 初始化数据
+document.getElementById('count-n').innerText = nodes.length;
+document.getElementById('count-e').innerText = edges.length;
 
-async function loadData() {
-  // 内嵌数据，由 Python 脚本替换此占位符
-  return GRAPH_DATA_PLACEHOLDER;
+function resize() {
+  width = window.innerWidth;
+  height = window.innerHeight;
+  canvas.width = width * window.devicePixelRatio;
+  canvas.height = height * window.devicePixelRatio;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 }
+window.addEventListener('resize', resize);
+resize();
 
-function init(graph) {
-  allNodes = graph.nodes;
-  allEdges = graph.edges;
+// 1. 力学仿真优化 (更强的斥力，更快的收敛)
+const simulation = d3.forceSimulation(nodes)
+  .force(\"link\", d3.forceLink(edges).id(d => d.id).distance(100).strength(0.3))
+  .force(\"charge\", d3.forceManyBody().strength(-180).distanceMax(500))
+  .force(\"center\", d3.forceCenter(width / 2, height / 2))
+  .force(\"collision\", d3.forceCollide().radius(d => (d.r || 5) + 10))
+  .on(\"tick\", render);
 
-  // 统计面板
-  document.getElementById('s-total').textContent =
-    allNodes.filter(n=>n.type==='keyword').reduce((a,b)=>a+b.count,0);
-  document.getElementById('s-kw').textContent  = allNodes.filter(n=>n.type==='keyword').length;
-  document.getElementById('s-dir').textContent = allNodes.filter(n=>n.type==='direction').length;
-  document.getElementById('s-edge').textContent = allEdges.length;
+// 2. Canvas 渲染函数 (极速硬件加速)
+function render() {
+  ctx.save();
+  ctx.clearRect(0, 0, width, height);
+  ctx.translate(transform.x, transform.y);
+  ctx.scale(transform.k, transform.k);
 
-  svg  = d3.select('#svg');
-  root = d3.select('#root');
+  // A. 绘制常规边 (极细极淡)
+  ctx.beginPath();
+  ctx.strokeStyle = \"rgba(48, 54, 61, 0.2)\";
+  ctx.lineWidth = 0.5;
+  edges.forEach(d => {
+    ctx.moveTo(d.source.x, d.source.y);
+    ctx.lineTo(d.target.x, d.target.y);
+  });
+  ctx.stroke();
 
-  // 缩放
-  zoomBehavior = d3.zoom().scaleExtent([0.2,5]).on('zoom', e => root.attr('transform', e.transform));
-  svg.call(zoomBehavior);
-
-  render(allNodes, allEdges);
-}
-
-function nodeSize(n) {
-  if (n.type==='keyword')   return Math.sqrt(n.count)*6 + 18;
-  if (n.type==='direction') return Math.sqrt(n.count)*4 + 10;
-  return Math.sqrt(n.count)*3 + 8;
-}
-
-function render(nodes, edges) {
-  // 只保留两端都在nodes里的边
-  const nodeIds = new Set(nodes.map(n=>n.id));
-  const visEdges = edges.filter(e => nodeIds.has(e.source.id??e.source) && nodeIds.has(e.target.id??e.target));
-
-  // 构建用于仿真的副本
-  const nodeMap = {};
-  const simNodes = nodes.map(n => { const c={...n}; nodeMap[n.id]=c; return c; });
-  const simEdges = visEdges.map(e => ({
-    ...e,
-    source: nodeMap[e.source.id??e.source],
-    target: nodeMap[e.target.id??e.target]
-  }));
-
-  if (simulation) simulation.stop();
-
-  simulation = d3.forceSimulation(simNodes)
-    .force('link', d3.forceLink(simEdges).distance(d => 120 - d.weight*2).strength(0.5))
-    .force('charge', d3.forceManyBody().strength(-220))
-    .force('center', d3.forceCenter(window.innerWidth/2, window.innerHeight/2))
-    .force('collision', d3.forceCollide().radius(n => nodeSize(n)+8));
-
-  // 边
-  const gEdges = d3.select('#g-edges');
-  gEdges.selectAll('*').remove();
-  const link = gEdges.selectAll('line').data(simEdges).join('line')
-    .attr('stroke', d => d.type==='kw_dir' ? '#444d56' : '#2d333b')
-    .attr('stroke-width', d => Math.sqrt(d.weight))
-    .attr('stroke-opacity', 0.7)
-    .attr('marker-end', 'url(#arrow)');
-
-  // 节点
-  const gNodes = d3.select('#g-nodes');
-  gNodes.selectAll('*').remove();
-  const node = gNodes.selectAll('g').data(simNodes).join('g')
-    .attr('cursor','pointer')
-    .call(d3.drag()
-      .on('start', (e,d) => { if(!e.active) simulation.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
-      .on('drag',  (e,d) => { d.fx=e.x; d.fy=e.y; })
-      .on('end',   (e,d) => { if(!e.active) simulation.alphaTarget(0); d.fx=null; d.fy=null; })
-    );
-
-  node.append('circle')
-    .attr('r', nodeSize)
-    .attr('fill', n => COLOR[n.type])
-    .attr('fill-opacity', 0.85)
-    .attr('stroke', n => COLOR[n.type])
-    .attr('stroke-width', 1.5)
-    .attr('stroke-opacity', 0.4);
-
-  node.append('text')
-    .text(n => n.label)
-    .attr('text-anchor','middle')
-    .attr('dy', n => nodeSize(n) + 13)
-    .attr('font-size', n => n.type==='keyword' ? 13 : n.type==='direction' ? 12 : 11)
-    .attr('fill', n => COLOR[n.type])
-    .attr('font-weight', n => n.type==='keyword' ? 'bold' : 'normal');
-
-  // tooltip
-  const tt = document.getElementById('tooltip');
-  node.on('mouseover', (e, d) => {
-    tt.style.display = 'block';
-    const typeLabel = {keyword:'搜索词', direction:'研究方向', year:'年份'}[d.type];
-    tt.innerHTML = `<div class="tt-title">${d.label}</div>
-      类型：${typeLabel}<br>论文数：${d.count} 篇`;
-  }).on('mousemove', e => {
-    tt.style.left = (e.clientX+14)+'px';
-    tt.style.top  = (e.clientY-10)+'px';
-  }).on('mouseout', () => { tt.style.display='none'; });
-
-
-
-    // 高亮点击
-  node.on('click', (e, d) => {
-        if (d.full_title) {
-        document.getElementById('detail-panel').style.display = 'flex';
-        document.getElementById('d-title').innerText = d.full_title;
-        document.getElementById('d-abs').innerText = d.abstract || '暂无详细摘要';
-        document.getElementById('d-out').innerText = d.outline || '暂无大纲数据';
-        
-        const linkEl = document.getElementById('d-link');
-        if (d.source_url) {
-            linkEl.href = d.source_url;
-            linkEl.innerText = "打开学术详情页 (百度学术/知网)";
-            linkEl.style.display = "inline";
-        } else {
-            linkEl.style.display = "none";
-        }
-    }
-    const connected = new Set([d.id]);
-    simEdges.forEach(ed => {
-      if(ed.source.id===d.id) connected.add(ed.target.id);
-      if(ed.target.id===d.id) connected.add(ed.source.id);
+  // B. 绘制高亮边 (当点击或悬浮时)
+  const activeNode = selectedNode || hoveredNode;
+  if (activeNode) {
+    ctx.beginPath();
+    ctx.strokeStyle = \"#58a6ff\";
+    ctx.lineWidth = 1.5;
+    edges.forEach(d => {
+      if (d.source.id === activeNode.id || d.target.id === activeNode.id) {
+        ctx.moveTo(d.source.x, d.source.y);
+        ctx.lineTo(d.target.x, d.target.y);
+      }
     });
-    node.select('circle').attr('fill-opacity', n => connected.has(n.id) ? 0.95 : 0.15);
-    link.attr('stroke-opacity', ed => (ed.source.id===d.id||ed.target.id===d.id) ? 0.9 : 0.05);
-    e.stopPropagation();
-  });
-  svg.on('click', () => {
-    node.select('circle').attr('fill-opacity', 0.85);
-    link.attr('stroke-opacity', 0.7);
+    ctx.stroke();
+  }
+
+  // C. 绘制节点
+  nodes.forEach(d => {
+    ctx.beginPath();
+    ctx.fillStyle = d.color || \"#8b949e\";
+    // 如果有节点激活，非关联节点变淡
+    if (activeNode) {
+       const isRelated = d.id === activeNode.id || edges.some(e => 
+         (e.source.id === activeNode.id && e.target.id === d.id) || 
+         (e.target.id === activeNode.id && e.source.id === d.id)
+       );
+       ctx.globalAlpha = isRelated ? 1 : 0.1;
+    } else {
+       ctx.globalAlpha = 0.9;
+    }
+    
+    const r = d.type === 'category' ? 12 : (d.r || 5);
+    ctx.arc(d.x, d.y, r, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    if (d.type === 'category' || (activeNode && d.globalAlpha > 0.5)) {
+       ctx.font = `${d.type==='category'?'bold 12px':'10px'} sans-serif`;
+       ctx.fillStyle = \"#e6edf3\";
+       ctx.fillText(d.label, d.x + r + 2, d.y + 3);
+    }
+    ctx.globalAlpha = 1;
   });
 
-  simulation.on('tick', () => {
-    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
-        .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-    node.attr('transform', d=>`translate(${d.x},${d.y})`);
-  });
+  ctx.restore();
 }
 
-function filterType(t) {
-  currentFilter = t;
-  ['all','kw','dir','yr'].forEach(k => document.getElementById('btn-'+k).classList.toggle('active', k===t));
-  if(t==='all') { render(allNodes, allEdges); return; }
-  const keep = new Set(t==='kw' ? ['keyword'] : t==='dir' ? ['direction'] : ['year']);
-  const filtered = allNodes.filter(n => keep.has(n.type));
-  render(filtered, allEdges);
+// 3. 交互逻辑
+const zoom = d3.zoom().scaleExtent([0.05, 10]).on(\"zoom\", (e) => {
+  transform = e.transform;
+  render();
+});
+d3.select(canvas).call(zoom);
+
+canvas.addEventListener('mousemove', e => {
+  const [mx, my] = [ (e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k ];
+  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 8));
+  
+  if (found !== hoveredNode) {
+    hoveredNode = found;
+    if (found) {
+      tt.style.display = 'block';
+      tt.style.left = e.pageX + 15 + 'px';
+      tt.style.top = e.pageY + 15 + 'px';
+      tt.innerHTML = `<strong>${found.full_title || found.label}</strong><br>
+                      ${found.author ? '👤 '+found.author : ''} ${found.year ? ' • '+found.year : ''}<br>
+                      被引: ${found.citations || 0}`;
+    } else {
+      tt.style.display = 'none';
+    }
+    render();
+  }
+});
+
+canvas.addEventListener('click', e => {
+  if (hoveredNode) {
+    selectedNode = hoveredNode;
+    showDetail(selectedNode);
+  } else {
+    selectedNode = null;
+    document.querySelector('#detail-panel').style.display = 'none';
+  }
+  render();
+});
+
+function showDetail(d) {
+  if (d.type === 'category') return;
+  const panel = document.querySelector('#detail-panel');
+  panel.style.display = 'flex';
+  document.querySelector('#d-title').innerText = d.full_title;
+  document.querySelector('#d-author-year').innerText = `👤 ${d.author || '未知'}  •  📅 ${d.year || '未知'}`;
+  document.querySelector('#d-category').innerText = `🏷️ ${d.primary_category}`;
+  document.querySelector('#d-abs').innerText = d.abstract || '暂无摘要 (可前往原文链接查看)';
+  
+  const linkBtn = document.querySelector('#d-link');
+  if (d.source_url) {
+    linkBtn.href = d.source_url;
+    linkBtn.style.display = 'block';
+  } else {
+    linkBtn.style.display = 'none';
+  }
 }
 
-function resetZoom() {
-  svg.transition().duration(600).call(zoomBehavior.transform, d3.zoomIdentity);
-}
+// 仿真初期加速收敛
+for (let i = 0; i < 100; ++i) simulation.tick();
+render();
 
-loadData().then(init);
 </script>
 </body>
-</html>
+</html>"

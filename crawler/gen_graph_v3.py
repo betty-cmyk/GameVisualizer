@@ -91,16 +91,23 @@ def main():
             nodes[c_idx]['papers'].append({'title': title, 'year': p.get('year', '')})
             edges.append({'source': pid, 'target': c_idx, 'weight': 1, 'type': 'paper_cat'})
 
-    # 论文之间关联
-    paper_to_neighbors = defaultdict(list)
+    # 论文之间关联优化：提高阈值，且每个节点只保留 Top-5 最强关联，防止边爆炸
+    paper_sim_list = []
     for i in range(len(paper_nodes)):
         ni = paper_nodes[i]
         ti = ni['_tokens']
+        potential_edges = []
         for j in range(i + 1, len(paper_nodes)):
             nj = paper_nodes[j]
             sim = jaccard_sim(ti, nj['_tokens'])
-            if sim > 0.08:
-                edges.append({'source': ni['id'], 'target': nj['id'], 'weight': sim * 5, 'type': 'paper_sim'})
+            if sim > 0.2: # 阈值从 0.08 提高到 0.2
+                potential_edges.append({'source': ni['id'], 'target': nj['id'], 'weight': sim * 5, 'type': 'paper_sim', 'val': sim})
+        
+        # 每个节点只贡献它最相关的 5 条边
+        potential_edges.sort(key=lambda x: x['val'], reverse=True)
+        paper_sim_list.extend(potential_edges[:5])
+
+    edges.extend(paper_sim_list)
 
     for n in nodes:
         if '_tokens' in n: del n['_tokens']
