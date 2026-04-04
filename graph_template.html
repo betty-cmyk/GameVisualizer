@@ -13,22 +13,23 @@
   /* 左侧边栏：图例与文献列表 */
   #sidebar-left { width: 300px; min-width: 300px; background: rgba(8,11,16,0.85); border-right: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); }
   .sb-header { padding: 15px 20px; border-bottom: 1px solid #1f242e; font-size: 16px; font-weight: bold; color: #58a6ff; display: flex; justify-content: space-between; align-items: center; }
-  #legend-list { padding: 15px 20px; border-bottom: 1px solid #1f242e; display: flex; flex-direction: column; gap: 10px; }
-  .legend-item { display: flex; align-items: center; font-size: 13px; color: #c9d1d9; cursor: pointer; }
-  .legend-color { width: 14px; height: 14px; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 10px currentColor; }
+  #legend-list { padding: 10px 20px; border-bottom: 1px solid #1f242e; display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; font-size: 12px; color: #8b949e; cursor: pointer; transition: 0.2s; padding: 4px; border-radius: 4px; }
+  .legend-item:hover, .legend-item.active { background: #161b22; color: #e6edf3; }
+  .legend-color { width: 12px; height: 12px; border-radius: 50%; margin-right: 10px; box-shadow: 0 0 8px currentColor; }
   #paper-list { flex: 1; overflow-y: auto; padding: 10px; }
-  .list-item { padding: 10px; border-bottom: 1px solid #11151d; font-size: 12px; cursor: pointer; transition: 0.2s; border-radius: 6px; }
+  .list-item { padding: 12px; border-bottom: 1px solid #11151d; cursor: pointer; transition: 0.2s; border-radius: 6px; }
   .list-item:hover { background: #1f242e; }
-  .list-title { color: #8b949e; margin-bottom: 5px; line-height: 1.4; }
+  .list-title { color: #c9d1d9; margin-bottom: 8px; font-size: 13px; line-height: 1.5; white-space: normal; word-break: break-word; }
   .list-meta { color: #58a6ff; font-size: 11px; display: flex; justify-content: space-between; }
 
-  /* 右侧边栏：论文档案与图表 */
-  #sidebar-right { width: 360px; min-width: 360px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-  #sidebar-right.active { transform: translateX(0); }
+  /* 右侧边栏：论文档案 (绝对常驻，不再能关闭，防止黑边) */
+  #sidebar-right { width: 360px; min-width: 360px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; }
   .detail-body { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #8b949e; }
-  .detail-body::-webkit-scrollbar { width: 6px; }
-  .detail-body::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 3px; }
-  .detail-title { color: #e6edf3; font-size: 17px; font-weight: bold; line-height: 1.4; margin-bottom: 15px; }
+  .detail-body::-webkit-scrollbar, #paper-list::-webkit-scrollbar { width: 6px; }
+  .detail-body::-webkit-scrollbar-thumb, #paper-list::-webkit-scrollbar-thumb { background-color: #30363d; border-radius: 3px; }
+  .detail-title { color: #e6edf3; font-size: 17px; font-weight: bold; line-height: 1.4; margin-bottom: 5px; }
+  .detail-title-en { color: #8b949e; font-size: 12px; line-height: 1.3; margin-bottom: 15px; font-style: italic; }
   .detail-meta-box { background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
   .meta-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #1f242e; padding-bottom: 8px; }
   .meta-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
@@ -38,15 +39,22 @@
   .detail-text { text-align: justify; margin-bottom: 20px; }
   .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
   .detail-link-btn:hover { background: #2ea043; }
-  .close-btn { background: none; border: none; color: #8b949e; font-size: 22px; cursor: pointer; }
+  
+  /* 顶部全局开关：极简暗物质风，默认关闭全景标签 */
+  #top-bar { position: absolute; top: 15px; left: 320px; z-index: 150; background: rgba(13,17,23,0.85); border: 1px solid #1f242e; border-radius: 8px; padding: 8px 15px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .toggle-label { font-size: 13px; color: #c9d1d9; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; font-weight: bold; }
+  .toggle-label input { cursor: pointer; width: 16px; height: 16px; }
 
+  /* 底部图表托盘 */
   #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #161b22; border: 1px solid #1f242e; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; }
   #charts-btn:hover { background: #1f242e; color: #fff; }
-  #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 0; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); }
+  #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 360px; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); }
   #charts-tray.active { bottom: 0; }
-  .chart-box { flex: 1; background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; }
-  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 10px; font-weight: bold; text-align: center; }
-  .chart-canvas { flex: 1; }
+  .chart-box { flex: 1; background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; min-width: 0; }
+  .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 5px; font-weight: bold; text-align: center; }
+  .chart-canvas { flex: 1; min-height: 180px; }
+  
+  /* 提示框 */
   #tooltip { position: absolute; pointer-events: none; background: rgba(13,17,23,0.95); border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #c9d1d9; display: none; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
   .tt-title { font-weight: bold; color: #e6edf3; margin-bottom: 4px; }
 </style>
@@ -59,43 +67,62 @@
       <span style="font-size:12px; color:#8b949e; font-weight:normal;"><span id="count-n">-</span> 篇文献</span>
     </div>
     <div id="legend-list"></div>
-    <div style="padding:10px 20px; font-size:12px; color:#6e7681; border-bottom:1px solid #1f242e; background:#05070a;">
-      点击星云节点点亮关联脉络
+    <div style="padding:10px 20px; font-size:12px; color:#58a6ff; border-bottom:1px solid #1f242e; background:#0d1117; font-weight:bold;">
+      当前领域文献排行榜
     </div>
     <div id="paper-list"></div>
   </div>
 
-  <canvas id="main-canvas"></canvas>
-  <button id="charts-btn" onclick="toggleCharts()">📊 展开历年统计图表</button>
+  <!-- 顶部全局开关：默认不勾选，保持极黑宇宙 -->
+  <div id="top-bar">
+    <label class="toggle-label">
+      <input type="checkbox" id="global-labels-cb" onchange="render()"> 🌟 开启全景星图标签
+    </label>
+    <span style="color: #484f58;">|</span>
+    <span style="font-size:12px; color:#8b949e;">提示：关闭标签进入纯净暗物质模式。点击圆点激活关联脉络。</span>
+  </div>
 
-  <div id="charts-tray">
+  <canvas id="main-canvas"></canvas>
+
+  <!-- 底部图表默认展开 -->
+  <button id="charts-btn" onclick="toggleCharts()">📊 收起/展开图表</button>
+  <div id="charts-tray" class="active">
     <div class="chart-box">
-      <div class="chart-title">历年发文量趋势</div>
+      <div class="chart-title">历年顶会发文量趋势</div>
       <div class="chart-canvas" id="chart-years"></div>
     </div>
     <div class="chart-box">
-      <div class="chart-title">研究领域分布</div>
+      <div class="chart-title">研究领域影响力分布</div>
       <div class="chart-canvas" id="chart-cats"></div>
     </div>
   </div>
 
+  <!-- 右侧详情常驻，永不收起 -->
   <div id="sidebar-right">
     <div class="sb-header">
       <span>星系档案</span>
-      <button class="close-btn" onclick="closeDetail()">×</button>
     </div>
     <div class="detail-body">
-      <div class="detail-title" id="d-title">-</div>
-      <div class="detail-meta-box">
+      <!-- 开局不再是“等待指令”，而是有一个默认主星 -->
+      <div class="detail-title" id="d-title">星图加载中...</div>
+      <div class="detail-title-en" id="d-title-en" style="color:#6e7681;">准备自动定焦核心文献。</div>
+      
+      <div class="detail-meta-box" id="d-meta-box" style="display:none;">
         <div class="meta-row"><span class="meta-label">👤 作者</span><span class="meta-val" id="d-author">-</span></div>
         <div class="meta-row"><span class="meta-label">📅 年份</span><span class="meta-val" id="d-year">-</span></div>
         <div class="meta-row"><span class="meta-label">🏷️ 领域</span><span class="meta-val" id="d-cat">-</span></div>
         <div class="meta-row"><span class="meta-label">🎖️ 学术评级</span><span class="meta-val" id="d-tier" style="color:#e3b341">-</span></div>
         <div class="meta-row"><span class="meta-label">🔥 被引次数</span><span class="meta-val" id="d-cite" style="color:#f85149">-</span></div>
       </div>
-      <span class="detail-label">核心摘要</span>
-      <div class="detail-text" id="d-abs">-</div>
-      <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 穿越至原文</a>
+      <div id="d-abs-container" style="display:none;">
+        <div id="ai-summary-box" style="background: rgba(88, 166, 255, 0.1); border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px; display: none;">
+          <span style="color: #58a6ff; font-weight: bold; font-size: 13px; display: block; margin-bottom: 10px;">🤖 AI 深度提炼</span>
+          <div class="detail-text" id="d-ai-summary" style="font-size: 13px; color: #adbac7; margin-bottom:0;"></div>
+        </div>
+        <span class="detail-label">核心摘要</span>
+        <div class="detail-text" id="d-abs">-</div>
+        <a id="d-link" class="detail-link-btn" href="#" target="_blank">🔍 穿越至原文</a>
+      </div>
     </div>
   </div>
 </div>
@@ -107,80 +134,125 @@
 const G = {GRAPH_DATA};
 
 let nodes = G.nodes.filter(n => n.type === 'paper');
-let edges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
+// 【完全保留那个巅峰版的连线结构】只拿 paper_sim，绝不要 paper_cat 的撕裂引力！
+let simEdges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
+let allEdges = simEdges;
+
 const categories = G.nodes.filter(n => n.type === 'category');
 const catMap = new Map(categories.map(c => [c.cat_id, c]));
 
+// 节点大小映射
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    // 平滑大小，普通文献极小(2px)，神作极大(18px)
-    n.r = 2.0 + 16.0 * Math.pow((n.citations || 0) / maxCites, 0.5);
-    // 扩大物理碰撞半径，确保即便不显示文字，节点之间也有足够的留白星空
+    n.r = 3.0 + 20.0 * Math.pow((n.citations || 0) / maxCites, 0.4);
     n.collideR = n.r + 15;
 });
 
-// 初始化左侧图例
+let currentFilterCat = 'Rendering';
 const legendBox = document.getElementById('legend-list');
-categories.forEach(c => {
-    legendBox.innerHTML += `<div class="legend-item"><div class="legend-color" style="background:${c.color}; color:${c.color}"></div>${c.label}</div>`;
-});
-
 const paperBox = document.getElementById('paper-list');
-nodes.sort((a,b) => (b.citations||0) - (a.citations||0)).forEach(p => {
-    const catColor = catMap.get(p.primary_category)?.color || '#8b949e';
+
+function renderPaperList() {
+    paperBox.innerHTML = '';
+    const filtered = nodes.filter(n => n.primary_category === currentFilterCat).sort((a,b) => (b.citations||0) - (a.citations||0));
+    filtered.forEach(p => {
+        const catColor = catMap.get(p.primary_category)?.color || '#8b949e';
+        const el = document.createElement('div');
+        el.className = 'list-item';
+        const showTitle = p.title_zh ? p.title_zh : p.full_title;
+        el.innerHTML = `
+            <div class="list-title">${showTitle}</div>
+            <div class="list-meta">
+                <span style="color:${catColor}">● ${p.primary_category.replace(/^.*_/,'')}</span>
+                <span>${p.year||'未知'} | 🔥 ${p.citations||0}</span>
+            </div>
+        `;
+        // 左侧列表点击不仅激活，还会把镜头【拉近/放大】到该星系
+        el.onclick = () => { focusNode(p.id, true); };
+        paperBox.appendChild(el);
+    });
+}
+
+categories.forEach(c => {
     const el = document.createElement('div');
-    el.className = 'list-item';
-    el.innerHTML = `
-        <div class="list-title">${p.label}</div>
-        <div class="list-meta">
-            <span style="color:${catColor}">● ${p.primary_category.replace(/^.*_/,'')}</span>
-            <span>${p.year||'未知'} | 🔥 ${p.citations||0}</span>
-        </div>
-    `;
-    el.onclick = () => { focusNode(p.id); showDetail(p); };
-    paperBox.appendChild(el);
+    el.className = 'legend-item';
+    el.innerHTML = `<div class="legend-color" style="background:${c.color}; color:${c.color}"></div>${c.label}`;
+    el.onclick = () => {
+        currentFilterCat = c.cat_id;
+        document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        renderPaperList();
+    };
+    if (c.cat_id === currentFilterCat) el.classList.add('active');
+    legendBox.appendChild(el);
 });
+renderPaperList();
 
 const canvas = document.querySelector('#main-canvas');
 const ctx = canvas.getContext('2d', { alpha: false });
 const tt = document.querySelector('#tooltip');
 let width, height, transform = d3.zoomIdentity;
+
+// 永远保持一个选中的节点，绝不留空！
 let selectedNode = null;
 let hoveredNode = null;
 
 document.getElementById('count-n').innerText = nodes.length;
 
 function resize() {
-    width = window.innerWidth - 300;
+    width = window.innerWidth - 300 - 360;
     height = window.innerHeight;
     canvas.width = width * window.devicePixelRatio;
     canvas.height = height * window.devicePixelRatio;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     canvas.style.marginLeft = '300px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 }
 window.addEventListener('resize', resize); resize();
 
-// 极强排斥力，打散所有节点，形成稀疏的星空
+// 【完全采用那个巅峰版的 D3 参数，绝不拉扯变形】
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(edges).id(d => d.id).distance(180).strength(0.12))
-  .force("charge", d3.forceManyBody().strength(-400).distanceMax(1200))
+  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(180).strength(0.04))
+  .force("charge", d3.forceManyBody().strength(-400).distanceMax(1800))
   .force("center", d3.forceCenter(width / 2, height / 2))
   .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  .force("x", d3.forceX(width / 2).strength(0.04))
-  .force("y", d3.forceY(height / 2).strength(0.04));
+  .force("x", d3.forceX(width / 2).strength(0.02))
+  .force("y", d3.forceY(height / 2).strength(0.02))
+  .stop();
 
 for (let i = 0; i < 200; ++i) simulation.tick();
 simulation.on("tick", render);
 
+function wrapText(context, text, maxWidth) {
+    let words = text.split(' ');
+    if (words.length === 1) words = text.split(/(?=[A-Z\u4e00-\u9fa5])/);
+    let lines = [];
+    let currentLine = words[0] || '';
+    for (let i = 1; i < words.length; i++) {
+        let word = words[i];
+        let width = context.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
+}
+
+function intersectRect(r1, r2) {
+  return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+}
+
 function render() {
   ctx.save();
-  // 宇宙深空绝对黑底
   ctx.fillStyle = "#05070a";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
   
-  // A. 绘制基于分类聚合的星云晕染层
   ctx.save();
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
@@ -188,35 +260,28 @@ function render() {
   
   categories.forEach(c => {
       const own = nodes.filter(n => n.primary_category === c.cat_id);
-      if (own.length < 2) return;
-      // 计算该类别的引力中心和散布半径
+      if (!own.length) return;
       const cx = d3.mean(own, n => n.x);
       const cy = d3.mean(own, n => n.y);
-      // 根据节点数量动态决定星云大小
-      const auraRadius = 200 + own.length * 4;
+      c.cx = cx; c.cy = cy; 
       
+      const auraRadius = 300 + own.length * 4;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, auraRadius);
       const hex = c.color.replace('#','');
       const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
-      // 极度柔和的星云，不抢占节点亮度
-      grad.addColorStop(0, `rgba(${r},${g},${b},0.05)`);
-      grad.addColorStop(0.5, `rgba(${r},${g},${b},0.015)`);
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.08)`);
+      grad.addColorStop(0.5, `rgba(${r},${g},${b},0.02)`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-      
-      ctx.beginPath();
-      ctx.fillStyle = grad;
-      ctx.arc(cx, cy, auraRadius, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.fillStyle = grad; ctx.arc(cx, cy, auraRadius, 0, Math.PI * 2); ctx.fill();
   });
   ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-  // B. 计算当前点击激活的节点和连线关系
   let activeEdges = [];
   let relatedNodes = new Set();
   if (selectedNode) {
       relatedNodes.add(selectedNode.id);
-      edges.forEach(e => {
+      simEdges.forEach(e => {
           if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
               activeEdges.push(e);
               relatedNodes.add(e.source.id); 
@@ -225,40 +290,29 @@ function render() {
       });
   }
 
-  // 进入世界坐标系绘制节点和线
   ctx.save();
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
-  // 常驻极暗连线 (暗物质网络)
+  // 常驻底色网
   ctx.beginPath();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.02)"; 
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.03)"; 
   ctx.lineWidth = 0.6 / transform.k;
-  edges.forEach(e => {
-      ctx.moveTo(e.source.x, e.source.y);
-      ctx.lineTo(e.target.x, e.target.y);
-  });
+  simEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
   ctx.stroke();
 
-  // 被点击的节点爆发高亮连线
+  // 高亮焦点网
   if (activeEdges.length > 0) {
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(88, 166, 255, 0.85)";
-      ctx.lineWidth = 2.0 / transform.k;
-      activeEdges.forEach(e => {
-          ctx.moveTo(e.source.x, e.source.y);
-          ctx.lineTo(e.target.x, e.target.y);
-      });
+      ctx.strokeStyle = "rgba(88, 166, 255, 0.95)";
+      ctx.lineWidth = 2.5 / transform.k;
+      activeEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
       ctx.stroke();
   }
 
-  // 绘制星系节点圆点
   nodes.forEach(n => {
-      let alpha = 0.2 + 0.4 * ((n.citations || 0) / maxCites); // 默认幽暗，牛逼的论文微亮
-      if (selectedNode) {
-          // 一旦有点击，无关节点全部沉入最暗
-          alpha = relatedNodes.has(n.id) ? 1.0 : 0.05;
-      }
+      let alpha = 0.25 + 0.55 * ((n.citations || 0) / maxCites);
+      if (selectedNode) alpha = relatedNodes.has(n.id) ? 1.0 : 0.05;
       
       ctx.beginPath();
       ctx.fillStyle = n.color || "#8b949e";
@@ -266,72 +320,103 @@ function render() {
       ctx.arc(n.x, n.y, n.r, 0, 2 * Math.PI);
       ctx.fill();
       
-      // 只有被激活或者是顶级神作，才会有发光特效
-      if ((selectedNode && relatedNodes.has(n.id)) || (!selectedNode && n.tier === 'S')) {
+      if (n.tier === 'S' || (selectedNode && relatedNodes.has(n.id))) {
           ctx.shadowColor = n.color;
-          ctx.shadowBlur = 12 / transform.k;
+          ctx.shadowBlur = 18 / transform.k;
           ctx.fill();
           ctx.shadowBlur = 0;
       }
   });
   ctx.restore();
 
-  // C. 绘制文字 (绝对物理像素坐标系，保证永不随滚轮缩放，永不模糊！)
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
+  let drawnBoxes = [];
+  let sortedNodes = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0));
   
-  nodes.forEach(n => {
-      // 将世界坐标系转换为屏幕像素系
+  const showGlobalLabels = document.getElementById('global-labels-cb').checked;
+
+  sortedNodes.forEach(n => {
       const screenX = n.x * transform.k + transform.x;
       const screenY = n.y * transform.k + transform.y;
-      
-      // 屏幕外不画
       if (screenX < -50 || screenX > width + 50 || screenY < -50 || screenY > height + 50) return;
       
       let isFocus = selectedNode && relatedNodes.has(n.id);
+      if (selectedNode && !isFocus) return; 
       
-      // 【核心逻辑】：平时满屏暗物质，绝对不显示文字！只有点击选中时才显示相关节点的文字！或者它是被引量巨高的超级神作！
-      if (!isFocus && !(!selectedNode && n.tier === 'S' && n.citations > 50)) return;
+      if (!isFocus && !showGlobalLabels && n.tier !== 'S') return;
 
-      // 文字永远保持绝对 11px 大小，字体极客
-      ctx.font = `${isFocus ? 'bold ' : ''}11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
-      ctx.fillStyle = isFocus ? "#ffffff" : "rgba(139, 148, 158, 0.8)";
-      
-      // 在圆的右侧物理偏移量 (10px) 处写字
       const screenR = n.r * transform.k;
-      ctx.fillText(n.label, screenX + screenR + 6, screenY);
+      const fontSize = isFocus ? 13 : 11;
+      ctx.font = `${isFocus ? 'bold ' : ''}${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      
+      let displayName = n.title_zh ? n.title_zh : n.full_title;
+      if (!isFocus && displayName.length > 30) {
+          displayName = displayName.substring(0, 30) + '...';
+      }
+      
+      const lines = wrapText(ctx, displayName, isFocus ? 250 : 120);
+      const lineHeight = fontSize * 1.4;
+      const textHeight = lines.length * lineHeight;
+      
+      const box = {
+          left: screenX + screenR + 6,
+          right: screenX + screenR + 6 + (isFocus ? 250 : 120),
+          top: screenY - textHeight/2,
+          bottom: screenY + textHeight/2
+      };
+
+      if (!isFocus && showGlobalLabels) {
+          let overlap = drawnBoxes.some(b => intersectRect(box, b));
+          if (overlap) return;
+      }
+      drawnBoxes.push(box);
+
+      ctx.fillStyle = isFocus ? "#ffffff" : "rgba(201, 209, 217, 0.85)";
+      lines.forEach((line, i) => {
+          ctx.fillText(line, box.left, box.top + i * lineHeight);
+      });
   });
 
   ctx.restore();
 }
 
-// 交互：缩放
 const zoomObj = d3.zoom().scaleExtent([0.05, 10]).on("zoom", (e) => { transform = e.transform; render(); });
 d3.select(canvas).call(zoomObj);
 
+// --- 改动 2：初始视角放大，看全且拉近 ---
 function autoFit() {
+    // 我们取一个稍微靠内一点的边界，保证一上来就把视距拉到最佳状态（像前滚了两下鼠标）
     const minX = d3.min(nodes, n=>n.x) - 100, maxX = d3.max(nodes, n=>n.x) + 100;
     const minY = d3.min(nodes, n=>n.y) - 100, maxY = d3.max(nodes, n=>n.y) + 100;
     const dx = maxX - minX, dy = maxY - minY;
-    const scale = Math.max(0.05, Math.min(8, 0.85 * Math.min(width / dx, height / dy)));
+    // 原本 0.85 的系数现在直接提升到 1.6，大幅放大开局镜头
+    const scale = Math.max(0.2, Math.min(3.0, 1.6 * Math.min(width / dx, height / dy)));
     const tx = width / 2 - scale * (minX + maxX) / 2;
     const ty = height / 2 - scale * (minY + maxY) / 2;
-    d3.select(canvas).transition().duration(1000).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    d3.select(canvas).transition().duration(1500).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
 }
-setTimeout(autoFit, 100);
+setTimeout(autoFit, 150);
 
-function focusNode(id) {
+// --- 改动 3：提供 doZoom 参数，开局激活时不拉近镜头，列表点击才拉近 ---
+function focusNode(id, doZoom=false) {
     const n = nodes.find(x => x.id === id);
     if(!n) return;
     selectedNode = n;
-    d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, height/2 - n.y*1.2).scale(1.2));
+    
+    // 强制右边栏保持显示这颗星星的内容
+    showDetail(selectedNode);
+    
+    if (doZoom) {
+        d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, height/2 - n.y*1.2).scale(1.2));
+    }
     render();
 }
 
-// 悬浮交互：仅显示 tooltip，不翻转颜色和高亮
 canvas.addEventListener('mousemove', e => {
   const [mx, my] = [(e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k];
-  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < n.r + 8 / transform.k);
+  const pickR = Math.max(8 / transform.k, (nodes[0]?.r || 5) + 2);
+  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 5) + pickR);
   
   if (found !== hoveredNode) {
     hoveredNode = found;
@@ -339,69 +424,138 @@ canvas.addEventListener('mousemove', e => {
     if (found) {
       tt.style.display = 'block';
       tt.style.left = e.pageX + 15 + 'px'; tt.style.top = e.pageY + 15 + 'px';
-      tt.innerHTML = `<div class="tt-title">${found.full_title || found.label}</div>
-                      <div style="color:#8b949e">被引: <span style="color:#58a6ff">${found.citations || 0}</span></div>`;
+      const titleToShow = found.title_zh ? found.title_zh : found.full_title;
+      tt.innerHTML = `<strong>${titleToShow}</strong><br>被引: <span style="color:#58a6ff">${found.citations || 0}</span>`;
     } else {
       tt.style.display = 'none';
     }
   }
 });
 
-// 点击交互：选中高亮该星系，并在右侧出详情
+// 核心：点击空白处，不取消选中状态！永远有一个焦点！
 canvas.addEventListener('click', () => {
   if (hoveredNode) {
-    selectedNode = hoveredNode; 
-    showDetail(selectedNode);
-  } else {
-    // 点击空白处，重置暗物质宇宙
-    selectedNode = null; 
-    closeDetail();
+    focusNode(hoveredNode.id, false);
   }
-  render();
 });
 
 function showDetail(d) {
-  const panel = document.getElementById('sidebar-right');
-  panel.classList.add('active');
-  document.getElementById('d-title').innerText = d.full_title;
+  document.getElementById('d-title').innerText = d.title_zh || d.full_title;
+  document.getElementById('d-title-en').innerText = d.title_zh ? d.full_title : '';
+  document.getElementById('d-meta-box').style.display = 'block';
+  document.getElementById('d-abs-container').style.display = 'block';
   document.getElementById('d-author').innerText = d.author || '-';
   document.getElementById('d-year').innerText = d.year || '-';
   document.getElementById('d-cat').innerText = d.primary_category.replace(/^.*_/,'');
   document.getElementById('d-tier').innerText = d.tier || 'C';
   document.getElementById('d-cite').innerText = d.citations || '0';
-  document.getElementById('d-abs').innerText = d.abstract || '暂无摘要，请点击下方链接前往学术源查看。';
+  document.getElementById('d-abs').innerText = d.abstract || '暂无摘要。';
+  
+  const aiBox = document.getElementById('ai-summary-box');
+  const aiText = document.getElementById('d-ai-summary');
+  if (aiBox && aiText) {
+      if (d.ai_summary && d.ai_summary.trim() !== '') {
+          aiBox.style.display = 'block';
+          aiText.innerHTML = d.ai_summary.replace(/\*\*(.*?)\*\*/g, '<b style="color:#79c0ff">$1</b>').replace(/\n/g, '<br>');
+      } else {
+          aiBox.style.display = 'none';
+      }
+  }
+
   const link = document.getElementById('d-link');
   if (d.source_url) { link.href = d.source_url; link.style.display = 'block'; } else { link.style.display = 'none'; }
 }
 
-function closeDetail() {
-  document.getElementById('sidebar-right').classList.remove('active');
-}
-
-// ECharts 图表...
 let chartsInited = false;
+let yChart, cChart;
 function toggleCharts() {
   const tray = document.getElementById('charts-tray');
   tray.classList.toggle('active');
-  if(tray.classList.contains('active') && !chartsInited) {
-      initCharts();
-      chartsInited = true;
+  if(tray.classList.contains('active')) {
+      if(!chartsInited) {
+          initCharts();
+          chartsInited = true;
+      }
+      setTimeout(() => { if(yChart) yChart.resize(); if(cChart) cChart.resize(); }, 350);
   }
 }
+
 function initCharts() {
-    const years = {};
-    nodes.forEach(n => { if(n.year > 1900) years[n.year] = (years[n.year]||0)+1; });
-    const sortedYears = Object.keys(years).sort();
-    const yChart = echarts.init(document.getElementById('chart-years'));
-    yChart.setOption({tooltip: {trigger: 'axis'}, grid: {top: 20, right: 20, bottom: 20, left: 30}, xAxis: {type: 'category', data: sortedYears, axisLabel: {color: '#8b949e'}}, yAxis: {type: 'value', splitLine: {lineStyle: {color: '#1f242e'}}, axisLabel: {color: '#8b949e'}}, series: [{data: sortedYears.map(y=>years[y]), type: 'line', smooth: true, areaStyle: {color: 'rgba(88, 166, 255, 0.1)'}, itemStyle: {color: '#58a6ff'}}]});
+    const yearSet = new Set();
+    nodes.forEach(n => { if(n.year > 1900) yearSet.add(n.year); });
+    const sortedYears = Array.from(yearSet).sort();
+
+    const catYearData = {};
+    categories.forEach(c => { catYearData[c.cat_id] = { label: c.label, color: c.color, dataMap: {} }; });
+    nodes.forEach(n => { 
+        if(n.year > 1900 && n.primary_category) {
+            const cd = catYearData[n.primary_category];
+            if (cd) cd.dataMap[n.year] = (cd.dataMap[n.year] || 0) + 1;
+        }
+    });
+
+    const seriesData = [];
+    const legendNames = [];
+    Object.values(catYearData).forEach(cd => {
+        const total = Object.values(cd.dataMap).reduce((a,b)=>a+b, 0);
+        if (total > 5) {
+            legendNames.push(cd.label);
+            seriesData.push({
+                name: cd.label, type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2 },
+                itemStyle: { color: cd.color }, data: sortedYears.map(y => cd.dataMap[y] || 0)
+            });
+        }
+    });
+
+    yChart = echarts.init(document.getElementById('chart-years'));
+    yChart.setOption({
+        tooltip: { trigger: 'axis', backgroundColor: 'rgba(13,17,23,0.9)', borderColor: '#30363d', textStyle: { color: '#c9d1d9', fontSize: 12 } },
+        legend: { data: legendNames, type: 'scroll', top: 0, textStyle: { color: '#8b949e', fontSize: 10 }, icon: 'circle', itemWidth: 8 },
+        grid: { top: 35, right: 15, bottom: 20, left: 30 },
+        xAxis: { type: 'category', data: sortedYears, axisLabel: { color: '#8b949e', fontSize: 10 }, axisLine: { lineStyle: { color: '#30363d' } } },
+        yAxis: { type: 'value', splitLine: { lineStyle: { color: '#1f242e', type: 'dashed' } }, axisLabel: { color: '#8b949e', fontSize: 10 } },
+        series: seriesData
+    });
 
     const cats = {};
     nodes.forEach(n => { cats[n.primary_category] = (cats[n.primary_category]||0)+1; });
-    const catData = Object.entries(cats).map(([k,v]) => ({name: k.replace(/^.*_/,''), value: v})).sort((a,b)=>b.value-a.value);
-    const cChart = echarts.init(document.getElementById('chart-cats'));
-    cChart.setOption({tooltip: {trigger: 'item'}, series: [{type: 'pie', radius: ['40%', '70%'], itemStyle: { borderRadius: 4, borderColor: '#0d1117', borderWidth: 2 }, label: { show: false }, data: catData}]});
+    const catData = Object.entries(cats).map(([k,v]) => { 
+        return { name: k.replace(/^.*_/,''), value: v, itemStyle: { color: catMap.get(k)?.color || '#58a6ff' } }
+    }).sort((a,b)=>b.value-a.value);
+    
+    cChart = echarts.init(document.getElementById('chart-cats'));
+    cChart.setOption({
+        tooltip: { trigger: 'item', backgroundColor: 'rgba(13,17,23,0.9)', borderColor: '#30363d', textStyle: { color: '#e6edf3' } },
+        series: [{
+            type: 'pie', radius: ['45%', '75%'], center: ['50%', '55%'], avoidLabelOverlap: true, 
+            itemStyle: { borderRadius: 4, borderColor: '#05070a', borderWidth: 2 }, 
+            label: { show: true, color: '#8b949e', formatter: '{b}\n{c}篇', fontSize: 10 }, 
+            labelLine: { length: 10, length2: 15, lineStyle: { color: '#30363d' } },
+            data: catData
+        }]
+    });
     window.addEventListener('resize', () => { yChart.resize(); cChart.resize(); });
 }
+
+// --- 改动 3：页面加载后，强制自动激活最牛的那篇神作！但绝对不拉动镜头！ ---
+setTimeout(() => {
+    if (nodes.length > 0) {
+        let topPaper = [...nodes].filter(n => n.primary_category === 'Rendering').sort((a,b) => (b.citations||0) - (a.citations||0))[0];
+        if (!topPaper) {
+            topPaper = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0))[0];
+        }
+        if (topPaper) {
+            focusNode(topPaper.id, false);
+        }
+    }
+    
+    // 默认强制展开底部图表
+    if(!chartsInited) {
+        initCharts();
+        chartsInited = true;
+    }
+}, 1800);
+
 </script>
 </body>
 </html>
