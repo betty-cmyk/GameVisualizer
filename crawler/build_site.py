@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, json
+import os
 
 CRAWLER_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(CRAWLER_DIR, '..')

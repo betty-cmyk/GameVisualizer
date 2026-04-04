@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 import os, json, re
-from collections import defaultdict
-from itertools import combinations
 
 CRAWLER_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(CRAWLER_DIR, '..', 'data')
@@ -42,7 +40,6 @@ def main():
     edges = []
     idx = 0
     cat_node_id = {}
-    cat_links = defaultdict(int)
     paper_nodes = []
 
     for cat_id, cat_info in CATEGORIES.items():

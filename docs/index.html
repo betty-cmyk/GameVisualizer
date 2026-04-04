@@ -1,63 +1,66 @@
-"<!DOCTYPE html>
-<html lang=\"zh-CN\">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-<meta charset=\"UTF-8\">
-<title>游戏科学与图形学知识图谱 - 极速版</title>
+<meta charset="UTF-8">
+<title>游戏科学论文空间图谱</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #0b0e14; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+  body { background: #0b0e14; color: #e6edf3; font-family: -apple-system, sans-serif; overflow: hidden; }
   #app { width: 100vw; height: 100vh; position: relative; }
-  canvas { cursor: crosshair; }
+  canvas { cursor: move; }
 
-  /* 顶部状态栏 */
-  #header { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; display: flex; align-items: center; padding: 0 20px; z-index: 100; }
+  /* 状态栏 */
+  #header { position: absolute; top: 0; left: 0; right: 0; height: 50px; background: rgba(22, 27, 34, 0.7); backdrop-filter: blur(10px); border-bottom: 1px solid #30363d; display: flex; align-items: center; padding: 0 20px; z-index: 100; pointer-events: none; }
   #title { font-size: 16px; font-weight: bold; color: #58a6ff; }
-  .stats-badge { background: #21262d; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-left: 15px; color: #8b949e; border: 1px solid #30363d; }
+  .stats-badge { background: #21262d; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-left: 15px; color: #8b949e; }
 
-  /* 详情面板 (增强版) */
-  #detail-panel { position: absolute; right: 20px; top: 70px; bottom: 30px; width: 380px; background: rgba(13, 17, 23, 0.95); border: 1px solid #30363d; border-radius: 12px; padding: 0; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 15px 35px rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+  /* 论文档案面板 */
+  #detail-panel {
+    position: absolute; right: 20px; top: 70px; bottom: 30px;
+    width: 350px; background: rgba(13,17,23,0.9); border: 1px solid #30363d;
+    border-radius: 12px; display: none; flex-direction: column;
+    z-index: 1000; box-shadow: 0 10px 40px rgba(0,0,0,0.5); backdrop-filter: blur(15px);
+  }
   .detail-header { padding: 20px; border-bottom: 1px solid #30363d; }
-  .detail-title { color: #58a6ff; font-size: 18px; font-weight: bold; line-height: 1.4; }
-  .detail-meta { color: #8b949e; font-size: 13px; margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
-  .detail-body { overflow-y: auto; flex: 1; padding: 20px; font-size: 14px; line-height: 1.7; }
-  .detail-label { color: #f78166; font-weight: bold; margin-top: 20px; margin-bottom: 8px; display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
-  .detail-text { color: #c9d1d9; text-align: justify; }
-  .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
-  .detail-link-btn:hover { background: #2ea043; }
-  .close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #8b949e; font-size: 20px; cursor: pointer; }
+  .detail-title { color: #58a6ff; font-size: 17px; font-weight: bold; line-height: 1.4; }
+  .detail-meta { color: #8b949e; font-size: 12px; margin-top: 8px; }
+  .detail-body { overflow-y: auto; flex: 1; padding: 20px; font-size: 13px; line-height: 1.6; color: #adbac7; }
+  .detail-label { color: #f78166; font-weight: bold; margin-top: 15px; display: block; font-size: 11px; text-transform: uppercase; }
+  .detail-text { margin-top: 5px; text-align: justify; }
+  .detail-link { display: block; background: #238636; color: #fff; padding: 10px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center; margin-top: 10px; }
+  .close-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; color: #8b949e; font-size: 18px; cursor: pointer; }
 
-  /* 提示框 */
-  #tooltip { position: absolute; pointer-events: none; background: rgba(22, 27, 34, 0.9); border: 1px solid #58a6ff; border-radius: 6px; padding: 8px 12px; font-size: 13px; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  #tooltip { position: absolute; pointer-events: none; background: rgba(22, 27, 34, 0.9); border: 1px solid #58a6ff; border-radius: 6px; padding: 8px 12px; font-size: 12px; display: none; z-index: 2000; }
 </style>
 </head>
 <body>
-<div id=\"app\">
-  <div id=\"header\">
-    <div id=\"title\">🎮 GamePaper Visualizer</div>
-    <div class=\"stats-badge\">节点: <span id=\"count-n\">-</span></div>
-    <div class=\"stats-badge\">关联: <span id=\"count-e\">-</span></div>
-    <div style=\"margin-left:auto; font-size:12px; color:#8b949e\">滚轮缩放 • 拖拽平移 • 点击气泡查看详情</div>
+<div id="app">
+  <div id="header">
+    <div id="title">🎮 Game Engineering Space Graph</div>
+    <div class="stats-badge">文献总量: <span id="count-n">-</span></div>
+    <div style="margin-left:auto; font-size:12px; color:#8b949e">提示：点击圆点激活关联路径</div>
   </div>
 
-  <canvas id=\"main-canvas\"></canvas>
+  <canvas id="main-canvas"></canvas>
+  <div id="tooltip"></div>
 
-  <div id=\"tooltip\"></div>
-
-  <div id=\"detail-panel\">
-    <button class=\"close-btn\" onclick=\"this.parentElement.style.display='none'\">×</button>
-    <div class=\"detail-header\">
-      <div class=\"detail-title\" id=\"d-title\">-</div>
-      <div class=\"detail-meta\">\n        <span id=\"d-author-year\"></span>\n        <span id=\"d-category\" style=\"color:#89d4f5;\"></span>\n      </div>
+  <div id="detail-panel">
+    <button class="close-btn" onclick="this.parentElement.style.display='none'">×</button>
+    <div class="detail-header">
+      <div class="detail-title" id="d-title">-</div>
+      <div class="detail-meta" id="d-meta">-</div>
     </div>
-    <div class=\"detail-body\">
-      <a id=\"d-link\" class=\"detail-link-btn\" href=\"#\" target=\"_blank\">🚀 查看学术原文 / PDF</a>
-      <span class=\"detail-label\">摘要</span>
-      <div class=\"detail-text\" id=\"d-abs\">-</div>
+    <div class="detail-body">
+      <a id="d-link" class="detail-link" href="#" target="_blank">🚀 查看原文 (ACM/IEEE/Scholar)</a>
+      <span class="detail-label">摘要提要</span>
+      <div class="detail-text" id="d-abs">-</div>
+      <span class="detail-label">顶会评级 & 被引</span>
+      <div class="detail-text" id="d-tier">-</div>
     </div>
   </div>
 </div>
 
-<script src=\"https://d3js.org/d3.v7.min.js\"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 const G = {
   "nodes": [
@@ -57170,118 +57173,98 @@ const G = {
   "total": 1545
 };
 const canvas = document.querySelector('#main-canvas');
-const ctx = canvas.getContext('2d', { alpha: false }); // 禁用 Alpha 提升性能
+const ctx = canvas.getContext('2d', { alpha: false });
 const tt = document.querySelector('#tooltip');
 let width, height, transform = d3.zoomIdentity;
 let nodes = G.nodes, edges = G.edges;
-let hoveredNode = null, selectedNode = null;
+let selectedNode = null, hoveredNode = null;
 
-// 初始化数据
+// 初始化
 document.getElementById('count-n').innerText = nodes.length;
-document.getElementById('count-e').innerText = edges.length;
 
 function resize() {
-  width = window.innerWidth;
-  height = window.innerHeight;
-  canvas.width = width * window.devicePixelRatio;
-  canvas.height = height * window.devicePixelRatio;
-  canvas.style.width = width + 'px';
-  canvas.style.height = height + 'px';
+  width = window.innerWidth; height = window.innerHeight;
+  canvas.width = width * window.devicePixelRatio; canvas.height = height * window.devicePixelRatio;
+  canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 }
-window.addEventListener('resize', resize);
-resize();
+window.addEventListener('resize', resize); resize();
 
-// 1. 力学仿真优化 (更强的斥力，更快的收敛)
+// 1. 强化力学仿真：让节点彻底散开
 const simulation = d3.forceSimulation(nodes)
-  .force(\"link\", d3.forceLink(edges).id(d => d.id).distance(100).strength(0.3))
-  .force(\"charge\", d3.forceManyBody().strength(-180).distanceMax(500))
-  .force(\"center\", d3.forceCenter(width / 2, height / 2))
-  .force(\"collision\", d3.forceCollide().radius(d => (d.r || 5) + 10))
-  .on(\"tick\", render);
+  .force("link", d3.forceLink(edges).id(d => d.id).distance(150).strength(0.2))
+  .force("charge", d3.forceManyBody().strength(-350).distanceMax(800)) // 极强斥力
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collision", d3.forceCollide().radius(d => (d.r || 5) + 25)) // 增大呼吸空间
+  .on("tick", render);
 
-// 2. Canvas 渲染函数 (极速硬件加速)
+// 2. 高性能 Canvas 渲染
 function render() {
   ctx.save();
-  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "#0b0e14";
+  ctx.fillRect(0, 0, width, height);
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
-  // A. 绘制常规边 (极细极淡)
-  ctx.beginPath();
-  ctx.strokeStyle = \"rgba(48, 54, 61, 0.2)\";
-  ctx.lineWidth = 0.5;
-  edges.forEach(d => {
-    ctx.moveTo(d.source.x, d.source.y);
-    ctx.lineTo(d.target.x, d.target.y);
-  });
-  ctx.stroke();
-
-  // B. 绘制高亮边 (当点击或悬浮时)
-  const activeNode = selectedNode || hoveredNode;
-  if (activeNode) {
+  // 只有在有节点被选中或悬浮时，才绘制该节点相关的线（动态连线）
+  const active = selectedNode || hoveredNode;
+  if (active) {
     ctx.beginPath();
-    ctx.strokeStyle = \"#58a6ff\";
-    ctx.lineWidth = 1.5;
-    edges.forEach(d => {
-      if (d.source.id === activeNode.id || d.target.id === activeNode.id) {
-        ctx.moveTo(d.source.x, d.source.y);
-        ctx.lineTo(d.target.x, d.target.y);
+    ctx.strokeStyle = "rgba(88, 166, 255, 0.6)";
+    ctx.lineWidth = 1.2 / transform.k;
+    edges.forEach(e => {
+      if (e.source.id === active.id || e.target.id === active.id) {
+        ctx.moveTo(e.source.x, e.source.y);
+        ctx.lineTo(e.target.x, e.target.y);
       }
     });
     ctx.stroke();
   }
 
-  // C. 绘制节点
-  nodes.forEach(d => {
+  // 绘制节点
+  nodes.forEach(n => {
     ctx.beginPath();
-    ctx.fillStyle = d.color || \"#8b949e\";
-    // 如果有节点激活，非关联节点变淡
-    if (activeNode) {
-       const isRelated = d.id === activeNode.id || edges.some(e => 
-         (e.source.id === activeNode.id && e.target.id === d.id) || 
-         (e.target.id === activeNode.id && e.source.id === d.id)
-       );
-       ctx.globalAlpha = isRelated ? 1 : 0.1;
+    ctx.fillStyle = n.color || "#58a6ff";
+    
+    // 空间分层：非相关节点变淡
+    if (active) {
+      const isRelated = n.id === active.id || edges.some(e => 
+        (e.source.id === active.id && e.target.id === n.id) || (e.target.id === active.id && e.source.id === n.id)
+      );
+      ctx.globalAlpha = isRelated ? 1 : 0.15;
     } else {
-       ctx.globalAlpha = 0.9;
+      ctx.globalAlpha = n.type === 'category' ? 0.4 : 0.85;
     }
-    
-    const r = d.type === 'category' ? 12 : (d.r || 5);
-    ctx.arc(d.x, d.y, r, 0, 2 * Math.PI);
+
+    const r = n.type === 'category' ? 15 : (n.r || 5);
+    ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
     ctx.fill();
-    
-    if (d.type === 'category' || (activeNode && d.globalAlpha > 0.5)) {
-       ctx.font = `${d.type==='category'?'bold 12px':'10px'} sans-serif`;
-       ctx.fillStyle = \"#e6edf3\";
-       ctx.fillText(d.label, d.x + r + 2, d.y + 3);
+
+    // 绘制文字（分类名称常驻，论文标题仅在激活时显示）
+    if (n.type === 'category' || (active && ctx.globalAlpha > 0.5)) {
+      ctx.font = `${n.type==='category'?'bold 14px':'11px'} sans-serif`;
+      ctx.fillStyle = "#e6edf3";
+      ctx.fillText(n.label, n.x + r + 5, n.y + 4);
     }
-    ctx.globalAlpha = 1;
   });
 
   ctx.restore();
 }
 
-// 3. 交互逻辑
-const zoom = d3.zoom().scaleExtent([0.05, 10]).on(\"zoom\", (e) => {
-  transform = e.transform;
-  render();
-});
+// 3. 交互逻辑 (缩放/悬浮/点击)
+const zoom = d3.zoom().scaleExtent([0.02, 10]).on("zoom", (e) => { transform = e.transform; render(); });
 d3.select(canvas).call(zoom);
 
 canvas.addEventListener('mousemove', e => {
-  const [mx, my] = [ (e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k ];
-  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 8));
+  const [mx, my] = [(e.offsetX - transform.x) / transform.k, (e.offsetY - transform.y) / transform.k];
+  const found = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < (n.r || 10) + 5);
   
   if (found !== hoveredNode) {
     hoveredNode = found;
     if (found) {
       tt.style.display = 'block';
-      tt.style.left = e.pageX + 15 + 'px';
-      tt.style.top = e.pageY + 15 + 'px';
-      tt.innerHTML = `<strong>${found.full_title || found.label}</strong><br>
-                      ${found.author ? '👤 '+found.author : ''} ${found.year ? ' • '+found.year : ''}<br>
-                      被引: ${found.citations || 0}`;
+      tt.style.left = e.pageX + 15 + 'px'; tt.style.top = e.pageY + 15 + 'px';
+      tt.innerHTML = `<strong>${found.full_title || found.label}</strong><br>被引: ${found.citations || 0}`;
     } else {
       tt.style.display = 'none';
     }
@@ -57289,39 +57272,30 @@ canvas.addEventListener('mousemove', e => {
   }
 });
 
-canvas.addEventListener('click', e => {
-  if (hoveredNode) {
-    selectedNode = hoveredNode;
-    showDetail(selectedNode);
+canvas.addEventListener('click', () => {
+  if (hoveredNode && hoveredNode.type !== 'category') {
+    selectedNode = hoveredNode; showDetail(selectedNode);
   } else {
-    selectedNode = null;
-    document.querySelector('#detail-panel').style.display = 'none';
+    selectedNode = null; document.querySelector('#detail-panel').style.display = 'none';
   }
   render();
 });
 
 function showDetail(d) {
-  if (d.type === 'category') return;
   const panel = document.querySelector('#detail-panel');
   panel.style.display = 'flex';
   document.querySelector('#d-title').innerText = d.full_title;
-  document.querySelector('#d-author-year').innerText = `👤 ${d.author || '未知'}  •  📅 ${d.year || '未知'}`;
-  document.querySelector('#d-category').innerText = `🏷️ ${d.primary_category}`;
-  document.querySelector('#d-abs').innerText = d.abstract || '暂无摘要 (可前往原文链接查看)';
-  
-  const linkBtn = document.querySelector('#d-link');
-  if (d.source_url) {
-    linkBtn.href = d.source_url;
-    linkBtn.style.display = 'block';
-  } else {
-    linkBtn.style.display = 'none';
-  }
+  document.querySelector('#d-meta').innerText = `👤 ${d.author || '未知'}  •  🏷️ ${d.primary_category}`;
+  document.querySelector('#d-abs').innerText = d.abstract || '暂无摘要内容。';
+  document.querySelector('#d-tier').innerText = `层级: ${d.tier}级  |  🔥 被引用: ${d.citations}次`;
+  const link = document.querySelector('#d-link');
+  if (d.source_url) { link.href = d.source_url; link.style.display = 'block'; } else { link.style.display = 'none'; }
 }
 
-// 仿真初期加速收敛
-for (let i = 0; i < 100; ++i) simulation.tick();
+// 预加速：进入即稳定
+for (let i = 0; i < 200; ++i) simulation.tick();
 render();
 
 </script>
 </body>
-</html>"
+</html>
