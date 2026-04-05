@@ -367,11 +367,13 @@ function render() {
   ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-  let activeEdges = [];
+    let activeEdges = [];
   let relatedNodes = new Set();
   if (selectedNode) {
       relatedNodes.add(selectedNode.id);
-      simEdges.forEach(e => {
+      const edgePool = (activeEdgeMode === 'sim') ? simEdges : citeEdges;
+      
+      edgePool.forEach(e => {
           if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
               activeEdges.push(e);
               relatedNodes.add(e.source.id); 
@@ -384,18 +386,31 @@ function render() {
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
+  // 永远常驻底层的相似度虚线
   ctx.beginPath();
   ctx.strokeStyle = "rgba(255, 255, 255, 0.03)"; 
   ctx.lineWidth = 0.6 / transform.k;
   simEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
   ctx.stroke();
 
+  // 高亮焦点网
   if (activeEdges.length > 0) {
-      ctx.beginPath();
-      ctx.strokeStyle = "rgba(88, 166, 255, 0.95)";
-      ctx.lineWidth = 2.5 / transform.k;
-      activeEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
-      ctx.stroke();
+      if (activeEdgeMode === 'sim') {
+          ctx.beginPath();
+          ctx.strokeStyle = "rgba(88, 166, 255, 0.95)";
+          ctx.lineWidth = 2.5 / transform.k;
+          activeEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
+          ctx.stroke();
+      } else {
+          // 真实学术引用模式（画箭头）
+          activeEdges.forEach(e => {
+              if (e.target.id === selectedNode.id) {
+                  drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(248, 81, 73, 0.9)", 2.0 / transform.k);
+              } else if (e.source.id === selectedNode.id) {
+                  drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(210, 168, 255, 0.9)", 2.0 / transform.k);
+              }
+          });
+      }
   }
 
   nodes.forEach(n => {
