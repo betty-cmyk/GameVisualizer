@@ -32,8 +32,20 @@ def main():
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute("SELECT * FROM papers")
-    papers = [dict(r) for r in cur.fetchall()]
+    raw_papers = [dict(r) for r in cur.fetchall()]
     conn.close()
+    
+    papers = []
+    outlier_count = 0
+    for p in raw_papers:
+        tier = p.get('tier', '')
+        cites = p.get('citations', 0)
+        # 【全局免疫法则】：剔除跨界毒瘤（如地震学射线追踪等旧时代高引噪声）
+        if tier not in ('S', 'A') and cites > 150:
+            outlier_count += 1
+            continue
+        papers.append(p)
+    print(f"[!] 过滤筛选机制启动：已自动拦截 {outlier_count} 篇跨界畸高引毒瘤。")
 
     nodes = []
     edges = []
