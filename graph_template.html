@@ -400,8 +400,8 @@ function computeLayoutAsync() {
                         let minX = d3.min(relNodes, n=>n.x), maxX = d3.max(relNodes, n=>n.x);
                         let minY = d3.min(relNodes, n=>n.y), maxY = d3.max(relNodes, n=>n.y);
                         let cx = (minX + maxX)/2, cy = (minY + maxY)/2;
-                        let w = Math.max(maxX-minX, 200) * 3.5, h = Math.max(maxY-minY, 200) * 3.5;
-                        let scale = Math.max(0.1, Math.min(2.0, Math.min(width/w, height/h)));
+                        let w = Math.max(maxX-minX, 250) * 5.5, h = Math.max(maxY-minY, 250) * 5.5;
+                        let scale = Math.max(0.05, Math.min(1.2, Math.min(width/w, height/h)));
                         let tx = width/2 - scale*cx, ty = height/2 - scale*cy;
                         d3.select(canvas).transition().duration(2500).ease(d3.easeCubicOut).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale)).on('end', ()=>render());
                         render();
