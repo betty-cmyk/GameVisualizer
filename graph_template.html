@@ -538,8 +538,10 @@ function render() {
       if (selectedNode && !isFocus) return; 
       if (!selectedNode && !showGlobalLabels && transform.k < 2.5) { if (idx >= 3) return; }
 
-      const screenR = n.r * transform.k;
-      const fontSize = isFocus ? 13 : 11;
+            const screenR = n.r * transform.k;
+      // 【优化】：宏观视野（缩放小）下动态缩小字号，防止拥挤
+      let baseSize = isFocus ? 13 : 11;
+      let fontSize = transform.k < 1.0 ? Math.max(isFocus ? 9 : 8, Math.round(baseSize * Math.pow(transform.k, 0.6))) : baseSize;
       ctx.font = `${isFocus ? 'bold ' : ''}${fontSize}px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
       
       let displayName = n.title_zh ? n.title_zh : n.full_title;
@@ -557,9 +559,10 @@ function render() {
       // 【核心】：螺旋 8 向试探碰撞算法，无论如何不能让焦点文字叠在一起
       if (isFocus || showGlobalLabels) {
           const angles = [0, Math.PI/4, Math.PI/2, 3*Math.PI/4, Math.PI, -3*Math.PI/4, -Math.PI/2, -Math.PI/4];
-          // 搜索3层距离
+                    // 搜索3层距离
+          let stepGap = Math.max(6, 16 * transform.k); // 【优化】：跳变步长随缩放倍率减小，避免文字飞得太远
           for (let step = 0; step < 4 && !placed; step++) {
-              let rOffset = screenR + 8 + step * 18;
+              let rOffset = screenR + 6 + step * stepGap;
               for (let a of angles) {
                   let anchorX = screenX + Math.cos(a) * rOffset;
                   let anchorY = screenY + Math.sin(a) * rOffset;
