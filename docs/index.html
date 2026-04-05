@@ -166,92 +166,8 @@
 </div>
 <div id="tooltip"></div>
 
-<script src="https://d3js.org/d3.v7.min.js">
-// --- 智能检索引擎模块 ---
-document.getElementById('search-input').addEventListener('keydown', e => {
-    if(e.key === 'Enter') {
-        const q = e.target.value.toLowerCase().trim();
-        const resBox = document.getElementById('search-results');
-        if(!q) { resBox.style.display = 'none'; return; }
-        
-        const hits = nodes.filter(n => 
-            (n.title_zh && n.title_zh.toLowerCase().includes(q)) ||
-            (n.full_title && n.full_title.toLowerCase().includes(q)) ||
-            (n.author && n.author.toLowerCase().includes(q))
-        ).sort((a,b) => (b.citations||0) - (a.citations||0)).slice(0, 30);
-        
-        resBox.innerHTML = '';
-        if(hits.length === 0) {
-            resBox.innerHTML = '<div style="padding:15px;color:#8b949e;font-size:12px;text-align:center;">未找到匹配的文献</div>';
-        } else {
-            hits.forEach(h => {
-                const div = document.createElement('div');
-                div.className = 'search-item';
-                const titleShow = h.title_zh ? h.title_zh : h.full_title;
-                div.innerHTML = `
-                    <div style="color:#e6edf3;font-weight:bold;margin-bottom:4px;font-size:12px;line-height:1.4;">${titleShow}</div>
-                    <div style="color:#8b949e;font-size:11px;display:flex;justify-content:space-between;">
-                        <span>👤 ${h.author ? h.author.split('/')[0] + ' et al.' : '未知'}</span>
-                        <span style="color:#58a6ff">🔥 ${h.citations||0}</span>
-                    </div>
-                `;
-                div.onclick = () => {
-                    e.target.value = titleShow;
-                    resBox.style.display = 'none';
-                    // 点击触发原生自带的聚光灯函数 (内含 smooth zoom)
-                    focusNode(h.id, true); 
-                };
-                resBox.appendChild(div);
-            });
-        }
-        resBox.style.display = 'block';
-    }
-});
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js">
-// --- 智能检索引擎模块 ---
-document.getElementById('search-input').addEventListener('keydown', e => {
-    if(e.key === 'Enter') {
-        const q = e.target.value.toLowerCase().trim();
-        const resBox = document.getElementById('search-results');
-        if(!q) { resBox.style.display = 'none'; return; }
-        
-        const hits = nodes.filter(n => 
-            (n.title_zh && n.title_zh.toLowerCase().includes(q)) ||
-            (n.full_title && n.full_title.toLowerCase().includes(q)) ||
-            (n.author && n.author.toLowerCase().includes(q))
-        ).sort((a,b) => (b.citations||0) - (a.citations||0)).slice(0, 30);
-        
-        resBox.innerHTML = '';
-        if(hits.length === 0) {
-            resBox.innerHTML = '<div style="padding:15px;color:#8b949e;font-size:12px;text-align:center;">未找到匹配的文献</div>';
-        } else {
-            hits.forEach(h => {
-                const div = document.createElement('div');
-                div.className = 'search-item';
-                const titleShow = h.title_zh ? h.title_zh : h.full_title;
-                div.innerHTML = `
-                    <div style="color:#e6edf3;font-weight:bold;margin-bottom:4px;font-size:12px;line-height:1.4;">${titleShow}</div>
-                    <div style="color:#8b949e;font-size:11px;display:flex;justify-content:space-between;">
-                        <span>👤 ${h.author ? h.author.split('/')[0] + ' et al.' : '未知'}</span>
-                        <span style="color:#58a6ff">🔥 ${h.citations||0}</span>
-                    </div>
-                `;
-                div.onclick = () => {
-                    e.target.value = titleShow;
-                    resBox.style.display = 'none';
-                    // 点击触发原生自带的聚光灯函数 (内含 smooth zoom)
-                    focusNode(h.id, true); 
-                };
-                resBox.appendChild(div);
-            });
-        }
-        resBox.style.display = 'block';
-    }
-});
-</script>
-
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script>
 const G = {
   "nodes": [
@@ -99236,7 +99152,6 @@ document.getElementById('search-input').addEventListener('keydown', e => {
                 div.onclick = () => {
                     e.target.value = titleShow;
                     resBox.style.display = 'none';
-                    // 点击触发原生自带的聚光灯函数 (内含 smooth zoom)
                     focusNode(h.id, true); 
                 };
                 resBox.appendChild(div);
@@ -99246,6 +99161,5 @@ document.getElementById('search-input').addEventListener('keydown', e => {
     }
 });
 </script>
-
 </body>
 </html>
