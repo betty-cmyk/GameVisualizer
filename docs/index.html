@@ -105859,7 +105859,11 @@ const catMap = new Map(categories.map(c => [c.cat_id, c]));
 // 【修复】：缩小最顶端巨星的尺寸，使整体分布更柔和。基础从 3 改为 3.5，最大不超过 16
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    n.r = 3.5 + 13.0 * Math.pow((n.citations || 0) / maxCites, 0.35);
+    // 降级非顶会论文的视觉权重，防止跨界高引论文（如地震学）喧宾夺主
+    let visualCites = n.citations || 0;
+    if (n.tier !== 'S' && n.tier !== 'A') visualCites = Math.min(visualCites, 100);
+    n.visualCites = visualCites;
+    n.r = 3.5 + 13.0 * Math.pow(visualCites / maxCites, 0.35);
     n.collideR = n.r + 10;
 });
 
@@ -106146,7 +106150,7 @@ function render() {
   }
 
   nodes.forEach(n => {
-      let alpha = 0.25 + 0.55 * ((n.citations || 0) / maxCites);
+      let alpha = 0.25 + 0.55 * ((n.visualCites || 0) / maxCites);
       if (selectedNode) alpha = relatedNodes.has(n.id) ? 1.0 : 0.05;
       
       ctx.beginPath();
@@ -106169,16 +106173,20 @@ function render() {
   let drawnBoxes = [];
   let sortedNodes = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0));
   
-  sortedNodes.forEach(n => {
+  sortedNodes.forEach((n, idx) => {
       const screenX = n.x * transform.k + transform.x;
       const screenY = n.y * transform.k + transform.y;
       if (screenX < -50 || screenX > width + 50 || screenY < -50 || screenY > height + 50) return;
       
       let isFocus = selectedNode && relatedNodes.has(n.id);
+      
+      // 1. 交互态：只要点击了某个节点，严格【只显示】它和它周围关联节点的名字
       if (selectedNode && !isFocus) return; 
       
-      // 【核心逻辑】：缩放倍数小于2.5时，绝对只有高引用的或者选中的会显示，放大了以后那些深色暗字才会飘出来！
-      if (!isFocus && !showGlobalLabels && n.tier !== 'S' && transform.k < 2.5) return;
+      // 2. 全局态：未点击任何节点时，死死卡住全局【只显示前 3 个】超级核心的名字
+      if (!selectedNode && !showGlobalLabels && transform.k < 2.5) {
+          if (idx >= 3) return;
+      }
 
       const screenR = n.r * transform.k;
       const fontSize = isFocus ? 13 : 11;
