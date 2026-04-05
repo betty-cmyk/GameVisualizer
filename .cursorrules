@@ -1,0 +1,67 @@
+# GamePaperVisualizer - AI Agent 终极开发守则 (Ultimate Guidelines)
+
+作为 Cursor AI Agent，在处理本项目（基于 Python 的大型学术爬虫与 D3.js+Canvas 知识图谱前端）的任何请求时，**必须严格、无条件地遵守以下核心规则**。这些规则源自项目开发中付出的惨痛代价与血泪教训。
+
+---
+
+## 🚨 一、 前端渲染与视觉性能 (Canvas & D3.js)
+
+### 1. 杜绝 Canvas 模糊与双重缩放 (Double Scaling Ban)
+- **绝对禁止**在 `render()` 循环内叠加使用 `ctx.scale(DPR, DPR)`。由于 D3 的 `zoom` 事件高频触发，如果在渲染帧内重复缩放会导致画面瞬间变成极度模糊的马赛克。
+- **标准做法**：在 `render()` 函数开头，必须使用绝对物理锁定：
+  ```javascript
+  const dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ```
+
+### 2. 避免文字堆叠与模糊 (Text Anti-Collision)
+- **不可随滚轮放大文字**：不要在 Canvas 坐标系内直接画随视口放大的字。必须将物理坐标转化为屏幕坐标 (`n.x * transform.k + transform.x`) 后，以绝对大小（如 `11px`）绘制文字，确保永远清晰锐利。
+- **包围盒剔除 (Bounding Box Culling)**：由于节点高达 1500 个，必须在绘制前计算文字的矩形包围盒，并与 `drawnBoxes` 数组进行 `intersectRect` 检测。若重叠且非核心节点，则隐藏不画。
+
+### 3. 动态平滑显示 (Semantic Zoom Fade-in)
+- 不要让隐藏的文字在放大时突兀出现（突变）。应根据缩放倍率 `transform.k` 和设定的阈值，使用 `Math.max(0, Math.min(1, (transform.k - THRESHOLD) / RANGE))` 计算出平滑的 Alpha 透明度，实现渐显效果。
+
+---
+
+## 🚨 二、 爬虫架构与反封禁策略 (Advanced Selenium & API)
+
+### 1. 接管真实浏览器 (CDP Hijacking)
+- 面对知网 (CNKI)、百度学术、Google Scholar 等拥有极强人机验证的学术网站，**绝对禁止**使用 `webdriver.Chrome()` 启动没有任何用户指纹的全新沙盒浏览器。
+- **标准做法**：必须要求用户在终端开放 9222 端口，并在代码中使用 `debuggerAddress` 接管：
+  ```python
+  options = webdriver.ChromeOptions()
+  options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+  ```
+
+### 2. 人机验证的非阻塞死等 (Infinite Non-blocking Wait)
+- 爬虫循环中极易触发 reCAPTCHA 或滑块验证。一旦检测到特征（如页面源码含有 `sorry/index`，标题含有 `robot`、`验证码`），**绝不允许抛出异常或关闭 Driver**。
+- **标准做法**：在循环内 `time.sleep(3)` 配合 `while` 进行无限轮询，让控制台打印警告并**等待人类在旁边接管的浏览器中手动划过验证码**。当特征消失后，脚本自动继续执行。
+
+### 3. 多源架构分离
+- 中文或顽固长尾文献：使用 Selenium 挂机爬取百度学术/Google Scholar。
+- 全球引用网络 (Citation Edges) 和严谨元数据：优先使用免 Key、不拦截的 **OpenAlex API** 进行极速补全。
+
+---
+
+## 🚨 三、 Python 脚本与 Windows 环境陷阱 (PowerShell Pitfalls)
+
+### 1. 禁用阻塞输入 (No `input()`)
+- AI 生成的后台挂机自动化脚本中，**坚决杜绝**使用 `input("请按回车继续")`。在无头终端（如 Cursor Agent 调用的终端）中，此命令会导致进程永久挂起并触发 2 分钟死亡超时。
+
+### 2. 避免编码崩溃 (No Emojis in GBK)
+- Windows CMD/PowerShell 默认使用 GBK 编码，在进行 `print()` 时若输出特殊的 Emoji（如 🚨、🌟 或 ​ 等零宽字符），会导致抛出 `UnicodeEncodeError` 中断数十小时的爬虫。
+- **标准做法**：后台脚本在控制台输出时，要么仅使用纯 ASCII 符号（如 `[!]`, `[+]`），要么使用 `.encode('gbk', 'ignore').decode('gbk')` 进行强制过滤保护。
+
+### 3. 多行脚本全量覆写原则 (Full Overwrite Principle)
+- PowerShell 对 Python 单行命令 (`python -c`) 中的单双引号、转义符和 `&&` 连接符支持极差，极易报 SyntaxError。
+- **标准做法**：
+  1. 避免拼接复杂的单行命令。
+  2. **在修改超过 20 行的复杂 Python 或 HTML 模板时，必须放弃 `multi_edit` 的局部正则打补丁方式**。
+  3. 直接执行 `del filename` 删除旧文件，再用 `create_new_file` 进行全量无损重写，杜绝缩进错乱和残余代码污染。
+
+---
+
+## 🚨 四、 数据库安全 (SQLite Safety)
+- 执行大范围的数据清洗、更新或删除时，**必须慎用 `%` 和 `?` 匹配符**。例如 `LIKE '%%'` 会导致不可逆的全表清空。
+- 对于任何危险的 `DELETE` 语句，必须先执行 `SELECT count(*)` 确认受影响的范围。
+- 始终保持 `papers.db` 和 `papers_clean.json` 的双向同步，确保前端总是有最新的本地备份可供恢复。
