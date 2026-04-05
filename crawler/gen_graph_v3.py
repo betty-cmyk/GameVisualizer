@@ -8,7 +8,6 @@ DATA_DIR = os.path.join(CRAWLER_DIR, '..', 'data')
 DB_PATH = os.path.join(DATA_DIR, 'papers.db')
 OUT_JSON = os.path.join(DATA_DIR, 'graph_v3.json')
 
-# === 游戏科学 8 大核心领域 ===
 CATEGORIES = {
     'Game AI': {'label': '游戏人工智能', 'color': '#ff7b72'}, 
     'PCG': {'label': '程序化内容生成', 'color': '#ffa657'}, 
@@ -90,7 +89,6 @@ def main():
             nodes[c_idx]['count'] += 1
             nodes[c_idx]['papers'].append({'title': title, 'year': p.get('year', '')})
 
-    # 1. 语义相似度网络 (底层物理引力线)
     paper_sim_list = []
     for i in range(len(paper_nodes)):
         ni = paper_nodes[i]
@@ -99,15 +97,17 @@ def main():
         for j in range(i + 1, len(paper_nodes)):
             nj = paper_nodes[j]
             sim = jaccard_sim(ti, nj['_tokens'])
-            if sim > 0.08:
+            if sim > 0.05: # 放宽一点点相似度，防止孤星太多
                 potential_edges.append({'source': ni['id'], 'target': nj['id'], 'weight': sim * 5, 'type': 'paper_sim', 'val': sim})
         
         potential_edges.sort(key=lambda x: x['val'], reverse=True)
-        paper_sim_list.extend(potential_edges[:5])
+        
+        # 【核心修正】：即使相似度不够高，只要不是0，也强制保留最强的 2 条线兜底！
+        if potential_edges:
+            paper_sim_list.extend(potential_edges[:5])
 
     edges.extend(paper_sim_list)
 
-    # 2. 真实引文网络 (只渲染，不参与物理计算！)
     oa_to_pid = {}
     for n in paper_nodes:
         oa_id = str(n.get('openalex_id', '')).split('/')[-1] 

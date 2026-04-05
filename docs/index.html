@@ -9,8 +9,6 @@
   #app { width: 100vw; height: 100vh; position: relative; display: flex; }
   canvas { position: absolute; top: 0; left: 0; z-index: 1; cursor: grab; }
   canvas:active { cursor: grabbing; }
-
-  /* --- 科幻级加载屏 --- */
   #loading { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease-in-out, visibility 0.8s; }
   .radar-container { position: relative; width: 180px; height: 180px; margin-bottom: 40px; }
   .radar-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; border: 1px solid transparent; border-top-color: #58a6ff; border-bottom-color: #58a6ff; animation: spin-forward 3s linear infinite; opacity: 0.8; box-shadow: 0 0 15px rgba(88, 166, 255, 0.4), inset 0 0 15px rgba(88, 166, 255, 0.4); }
@@ -28,7 +26,6 @@
   .progress-bar { height: 100%; width: 0%; background: #58a6ff; box-shadow: 0 0 10px #58a6ff; transition: width 0.1s linear; }
   #loading::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; pointer-events: none; z-index: 10; }
 
-  /* --- 主界面 UI --- */
   #sidebar-left { width: 300px; min-width: 300px; background: rgba(8,11,16,0.85); border-right: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); font-family: -apple-system, sans-serif; }
   .sb-header { padding: 15px 20px; border-bottom: 1px solid #1f242e; font-size: 16px; font-weight: bold; color: #58a6ff; display: flex; justify-content: space-between; align-items: center; }
   #legend-list { padding: 10px 20px; border-bottom: 1px solid #1f242e; display: flex; flex-direction: column; gap: 8px; }
@@ -41,7 +38,6 @@
   .list-title { color: #c9d1d9; margin-bottom: 8px; font-size: 13px; line-height: 1.5; white-space: normal; word-break: break-word; }
   .list-meta { color: #58a6ff; font-size: 11px; display: flex; justify-content: space-between; }
 
-  /* 右侧边栏 (绝对常驻，完全钉死在右侧) */
   #sidebar-right { width: 380px; min-width: 380px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; font-family: -apple-system, sans-serif; }
   .detail-body { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #8b949e; }
   .detail-body::-webkit-scrollbar, #paper-list::-webkit-scrollbar { width: 6px; }
@@ -58,14 +54,12 @@
   .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
   .detail-link-btn:hover { background: #2ea043; }
   
-  /* 高亮边切换器 (全新！针对被选中的核心论文) */
   .edge-mode-switch { display: flex; background: #161b22; border-radius: 6px; overflow: hidden; margin-bottom: 20px; border: 1px solid #30363d; }
   .edge-mode-btn { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: bold; color: #8b949e; cursor: pointer; transition: 0.2s; user-select: none; }
   .edge-mode-btn:not(:last-child) { border-right: 1px solid #30363d; }
   .edge-mode-btn.active.sim { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
   .edge-mode-btn.active.cite { background: rgba(210, 168, 255, 0.15); color: #d2a8ff; }
 
-  /* 极简全局文字开关 Icon */
   #toggle-labels-btn {
     position: absolute; top: 20px; left: 320px; z-index: 150;
     width: 40px; height: 40px; background: rgba(13,17,23,0.85); border: 1px solid #1f242e;
@@ -76,7 +70,6 @@
   #toggle-labels-btn:hover { border-color: #58a6ff; transform: scale(1.05); }
   #toggle-labels-btn.active { background: rgba(88,166,255,0.1); color: #58a6ff; border-color: #58a6ff; box-shadow: 0 0 15px rgba(88,166,255,0.4); }
 
-  /* 底部图表托盘 */
   #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #161b22; border: 1px solid #1f242e; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; font-family: -apple-system, sans-serif; }
   #charts-btn:hover { background: #1f242e; color: #fff; }
   #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 380px; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); font-family: -apple-system, sans-serif; }
@@ -84,8 +77,6 @@
   .chart-box { flex: 1; background: #0d1117; border: 1px solid #1f242e; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; min-width: 0; }
   .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 5px; font-weight: bold; text-align: center; }
   .chart-canvas { flex: 1; min-height: 180px; }
-  
-  /* 提示框 */
   #tooltip { position: absolute; pointer-events: none; background: rgba(13,17,23,0.95); border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #c9d1d9; display: none; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); font-family: -apple-system, sans-serif; }
   .tt-title { font-weight: bold; color: #e6edf3; margin-bottom: 4px; }
 </style>
@@ -146,7 +137,6 @@
       <div class="detail-title" id="d-title">等待观测指令...</div>
       <div class="detail-title-en" id="d-title-en" style="color:#6e7681;">星图中心计算中...</div>
       
-      <!-- 【核心】：高亮连线模式切换器！ -->
       <div class="edge-mode-switch" id="d-edge-mode-box" style="display:none;">
         <div class="edge-mode-btn active sim" id="btn-sim" onclick="setEdgeMode('sim')">🌌 语义相似网络</div>
         <div class="edge-mode-btn cite" id="btn-cite" onclick="setEdgeMode('cite')">🔗 真实学术引用</div>
@@ -51651,6 +51641,27 @@ const G = {
       "val": 0.09523809523809523
     },
     {
+      "source": 296,
+      "target": 997,
+      "weight": 0.375,
+      "type": "paper_sim",
+      "val": 0.075
+    },
+    {
+      "source": 296,
+      "target": 957,
+      "weight": 0.36585365853658536,
+      "type": "paper_sim",
+      "val": 0.07317073170731707
+    },
+    {
+      "source": 296,
+      "target": 297,
+      "weight": 0.3488372093023256,
+      "type": "paper_sim",
+      "val": 0.06976744186046512
+    },
+    {
       "source": 297,
       "target": 1375,
       "weight": 0.8333333333333333,
@@ -51740,6 +51751,20 @@ const G = {
       "weight": 0.4081632653061224,
       "type": "paper_sim",
       "val": 0.08163265306122448
+    },
+    {
+      "source": 299,
+      "target": 1335,
+      "weight": 0.38461538461538464,
+      "type": "paper_sim",
+      "val": 0.07692307692307693
+    },
+    {
+      "source": 299,
+      "target": 976,
+      "weight": 0.375,
+      "type": "paper_sim",
+      "val": 0.075
     },
     {
       "source": 300,
@@ -61591,6 +61616,27 @@ const G = {
       "val": 0.10204081632653061
     },
     {
+      "source": 581,
+      "target": 614,
+      "weight": 0.39215686274509803,
+      "type": "paper_sim",
+      "val": 0.0784313725490196
+    },
+    {
+      "source": 581,
+      "target": 585,
+      "weight": 0.38461538461538464,
+      "type": "paper_sim",
+      "val": 0.07692307692307693
+    },
+    {
+      "source": 581,
+      "target": 678,
+      "weight": 0.375,
+      "type": "paper_sim",
+      "val": 0.075
+    },
+    {
       "source": 582,
       "target": 592,
       "weight": 1.3636363636363635,
@@ -62403,6 +62449,27 @@ const G = {
       "val": 0.125
     },
     {
+      "source": 605,
+      "target": 659,
+      "weight": 0.3191489361702127,
+      "type": "paper_sim",
+      "val": 0.06382978723404255
+    },
+    {
+      "source": 605,
+      "target": 677,
+      "weight": 0.3191489361702127,
+      "type": "paper_sim",
+      "val": 0.06382978723404255
+    },
+    {
+      "source": 605,
+      "target": 665,
+      "weight": 0.2884615384615385,
+      "type": "paper_sim",
+      "val": 0.057692307692307696
+    },
+    {
       "source": 606,
       "target": 649,
       "weight": 1.2195121951219512,
@@ -62758,6 +62825,34 @@ const G = {
       "weight": 0.41666666666666663,
       "type": "paper_sim",
       "val": 0.08333333333333333
+    },
+    {
+      "source": 616,
+      "target": 666,
+      "weight": 0.375,
+      "type": "paper_sim",
+      "val": 0.075
+    },
+    {
+      "source": 616,
+      "target": 673,
+      "weight": 0.375,
+      "type": "paper_sim",
+      "val": 0.075
+    },
+    {
+      "source": 616,
+      "target": 617,
+      "weight": 0.36585365853658536,
+      "type": "paper_sim",
+      "val": 0.07317073170731707
+    },
+    {
+      "source": 616,
+      "target": 619,
+      "weight": 0.3571428571428571,
+      "type": "paper_sim",
+      "val": 0.07142857142857142
     },
     {
       "source": 617,
@@ -63404,6 +63499,27 @@ const G = {
       "val": 0.08571428571428572
     },
     {
+      "source": 635,
+      "target": 638,
+      "weight": 0.39473684210526316,
+      "type": "paper_sim",
+      "val": 0.07894736842105263
+    },
+    {
+      "source": 635,
+      "target": 649,
+      "weight": 0.39473684210526316,
+      "type": "paper_sim",
+      "val": 0.07894736842105263
+    },
+    {
+      "source": 635,
+      "target": 663,
+      "weight": 0.39473684210526316,
+      "type": "paper_sim",
+      "val": 0.07894736842105263
+    },
+    {
       "source": 636,
       "target": 649,
       "weight": 0.875,
@@ -63437,6 +63553,13 @@ const G = {
       "weight": 0.6818181818181818,
       "type": "paper_sim",
       "val": 0.13636363636363635
+    },
+    {
+      "source": 637,
+      "target": 672,
+      "weight": 0.3,
+      "type": "paper_sim",
+      "val": 0.06
     },
     {
       "source": 638,
@@ -79133,6 +79256,27 @@ const G = {
       "val": 0.16666666666666666
     },
     {
+      "source": 1087,
+      "target": 1089,
+      "weight": 0.38461538461538464,
+      "type": "paper_sim",
+      "val": 0.07692307692307693
+    },
+    {
+      "source": 1087,
+      "target": 1110,
+      "weight": 0.32608695652173914,
+      "type": "paper_sim",
+      "val": 0.06521739130434782
+    },
+    {
+      "source": 1087,
+      "target": 1115,
+      "weight": 0.32608695652173914,
+      "type": "paper_sim",
+      "val": 0.06521739130434782
+    },
+    {
       "source": 1088,
       "target": 1112,
       "weight": 0.7142857142857142,
@@ -79761,6 +79905,41 @@ const G = {
       "weight": 0.425531914893617,
       "type": "paper_sim",
       "val": 0.0851063829787234
+    },
+    {
+      "source": 1106,
+      "target": 1115,
+      "weight": 0.3,
+      "type": "paper_sim",
+      "val": 0.06
+    },
+    {
+      "source": 1106,
+      "target": 1513,
+      "weight": 0.29411764705882354,
+      "type": "paper_sim",
+      "val": 0.058823529411764705
+    },
+    {
+      "source": 1106,
+      "target": 1450,
+      "weight": 0.2830188679245283,
+      "type": "paper_sim",
+      "val": 0.05660377358490566
+    },
+    {
+      "source": 1106,
+      "target": 1457,
+      "weight": 0.2830188679245283,
+      "type": "paper_sim",
+      "val": 0.05660377358490566
+    },
+    {
+      "source": 1106,
+      "target": 1460,
+      "weight": 0.2727272727272727,
+      "type": "paper_sim",
+      "val": 0.05454545454545454
     },
     {
       "source": 1107,
@@ -93966,6 +94145,13 @@ const G = {
       "val": 0.09090909090909091
     },
     {
+      "source": 1512,
+      "target": 1538,
+      "weight": 0.3773584905660377,
+      "type": "paper_sim",
+      "val": 0.07547169811320754
+    },
+    {
       "source": 1513,
       "target": 1535,
       "weight": 0.6818181818181818,
@@ -94209,6 +94395,13 @@ const G = {
       "weight": 0.625,
       "type": "paper_sim",
       "val": 0.125
+    },
+    {
+      "source": 1520,
+      "target": 1544,
+      "weight": 0.26785714285714285,
+      "type": "paper_sim",
+      "val": 0.05357142857142857
     },
     {
       "source": 1521,
@@ -94638,6 +94831,34 @@ const G = {
       "val": 0.10909090909090909
     },
     {
+      "source": 1533,
+      "target": 1540,
+      "weight": 0.3773584905660377,
+      "type": "paper_sim",
+      "val": 0.07547169811320754
+    },
+    {
+      "source": 1533,
+      "target": 1545,
+      "weight": 0.37037037037037035,
+      "type": "paper_sim",
+      "val": 0.07407407407407407
+    },
+    {
+      "source": 1533,
+      "target": 1548,
+      "weight": 0.3389830508474576,
+      "type": "paper_sim",
+      "val": 0.06779661016949153
+    },
+    {
+      "source": 1533,
+      "target": 1538,
+      "weight": 0.3333333333333333,
+      "type": "paper_sim",
+      "val": 0.06666666666666667
+    },
+    {
       "source": 1534,
       "target": 1536,
       "weight": 0.8163265306122448,
@@ -94939,6 +95160,20 @@ const G = {
       "val": 0.09433962264150944
     },
     {
+      "source": 1542,
+      "target": 1545,
+      "weight": 0.38461538461538464,
+      "type": "paper_sim",
+      "val": 0.07692307692307693
+    },
+    {
+      "source": 1542,
+      "target": 1550,
+      "weight": 0.3773584905660377,
+      "type": "paper_sim",
+      "val": 0.07547169811320754
+    },
+    {
       "source": 1543,
       "target": 1548,
       "weight": 0.6382978723404255,
@@ -95002,6 +95237,13 @@ const G = {
       "val": 0.08695652173913043
     },
     {
+      "source": 1544,
+      "target": 1549,
+      "weight": 0.3571428571428571,
+      "type": "paper_sim",
+      "val": 0.07142857142857142
+    },
+    {
       "source": 1545,
       "target": 1548,
       "weight": 0.673076923076923,
@@ -95037,6 +95279,20 @@ const G = {
       "val": 0.08888888888888889
     },
     {
+      "source": 1546,
+      "target": 1548,
+      "weight": 0.4,
+      "type": "paper_sim",
+      "val": 0.08
+    },
+    {
+      "source": 1546,
+      "target": 1551,
+      "weight": 0.3125,
+      "type": "paper_sim",
+      "val": 0.0625
+    },
+    {
       "source": 1547,
       "target": 1549,
       "weight": 0.5681818181818181,
@@ -95049,6 +95305,27 @@ const G = {
       "weight": 0.40540540540540543,
       "type": "paper_sim",
       "val": 0.08108108108108109
+    },
+    {
+      "source": 1547,
+      "target": 1551,
+      "weight": 0.4,
+      "type": "paper_sim",
+      "val": 0.08
+    },
+    {
+      "source": 1547,
+      "target": 1548,
+      "weight": 0.3773584905660377,
+      "type": "paper_sim",
+      "val": 0.07547169811320754
+    },
+    {
+      "source": 1547,
+      "target": 1563,
+      "weight": 0.3571428571428571,
+      "type": "paper_sim",
+      "val": 0.07142857142857142
     },
     {
       "source": 1548,
@@ -95070,6 +95347,20 @@ const G = {
       "weight": 0.44642857142857145,
       "type": "paper_sim",
       "val": 0.08928571428571429
+    },
+    {
+      "source": 1548,
+      "target": 1549,
+      "weight": 0.38461538461538464,
+      "type": "paper_sim",
+      "val": 0.07692307692307693
+    },
+    {
+      "source": 1548,
+      "target": 1595,
+      "weight": 0.2976190476190476,
+      "type": "paper_sim",
+      "val": 0.05952380952380952
     },
     {
       "source": 1549,
@@ -95100,6 +95391,13 @@ const G = {
       "val": 0.08163265306122448
     },
     {
+      "source": 1549,
+      "target": 1554,
+      "weight": 0.39823008849557523,
+      "type": "paper_sim",
+      "val": 0.07964601769911504
+    },
+    {
       "source": 1550,
       "target": 1551,
       "weight": 0.4807692307692308,
@@ -95121,11 +95419,32 @@ const G = {
       "val": 0.0821917808219178
     },
     {
+      "source": 1550,
+      "target": 1595,
+      "weight": 0.379746835443038,
+      "type": "paper_sim",
+      "val": 0.0759493670886076
+    },
+    {
+      "source": 1550,
+      "target": 1552,
+      "weight": 0.3773584905660377,
+      "type": "paper_sim",
+      "val": 0.07547169811320754
+    },
+    {
       "source": 1551,
       "target": 1552,
       "weight": 0.4716981132075472,
       "type": "paper_sim",
       "val": 0.09433962264150944
+    },
+    {
+      "source": 1551,
+      "target": 1582,
+      "weight": 0.27472527472527475,
+      "type": "paper_sim",
+      "val": 0.054945054945054944
     },
     {
       "source": 1553,
@@ -95639,6 +95958,20 @@ const G = {
       "val": 0.0962962962962963
     },
     {
+      "source": 1567,
+      "target": 1589,
+      "weight": 0.39285714285714285,
+      "type": "paper_sim",
+      "val": 0.07857142857142857
+    },
+    {
+      "source": 1567,
+      "target": 1579,
+      "weight": 0.3619909502262444,
+      "type": "paper_sim",
+      "val": 0.07239819004524888
+    },
+    {
       "source": 1568,
       "target": 1571,
       "weight": 0.5625,
@@ -95714,6 +96047,34 @@ const G = {
       "weight": 0.4605263157894737,
       "type": "paper_sim",
       "val": 0.09210526315789473
+    },
+    {
+      "source": 1570,
+      "target": 1585,
+      "weight": 0.3488372093023256,
+      "type": "paper_sim",
+      "val": 0.06976744186046512
+    },
+    {
+      "source": 1570,
+      "target": 1572,
+      "weight": 0.31862745098039214,
+      "type": "paper_sim",
+      "val": 0.06372549019607843
+    },
+    {
+      "source": 1570,
+      "target": 1579,
+      "weight": 0.3112033195020747,
+      "type": "paper_sim",
+      "val": 0.06224066390041494
+    },
+    {
+      "source": 1570,
+      "target": 1586,
+      "weight": 0.3051643192488263,
+      "type": "paper_sim",
+      "val": 0.06103286384976526
     },
     {
       "source": 1571,
@@ -95849,6 +96210,13 @@ const G = {
       "val": 0.09090909090909091
     },
     {
+      "source": 1574,
+      "target": 1588,
+      "weight": 0.4,
+      "type": "paper_sim",
+      "val": 0.08
+    },
+    {
       "source": 1575,
       "target": 1578,
       "weight": 0.5172413793103449,
@@ -95877,6 +96245,13 @@ const G = {
       "val": 0.08333333333333333
     },
     {
+      "source": 1575,
+      "target": 1577,
+      "weight": 0.3763440860215054,
+      "type": "paper_sim",
+      "val": 0.07526881720430108
+    },
+    {
       "source": 1576,
       "target": 1579,
       "weight": 0.6201550387596899,
@@ -95896,6 +96271,20 @@ const G = {
       "weight": 0.43478260869565216,
       "type": "paper_sim",
       "val": 0.08695652173913043
+    },
+    {
+      "source": 1576,
+      "target": 1590,
+      "weight": 0.37037037037037035,
+      "type": "paper_sim",
+      "val": 0.07407407407407407
+    },
+    {
+      "source": 1576,
+      "target": 1585,
+      "weight": 0.3694581280788178,
+      "type": "paper_sim",
+      "val": 0.07389162561576355
     },
     {
       "source": 1577,
@@ -95945,6 +96334,27 @@ const G = {
       "weight": 0.4301075268817205,
       "type": "paper_sim",
       "val": 0.08602150537634409
+    },
+    {
+      "source": 1578,
+      "target": 1588,
+      "weight": 0.39473684210526316,
+      "type": "paper_sim",
+      "val": 0.07894736842105263
+    },
+    {
+      "source": 1578,
+      "target": 1587,
+      "weight": 0.38961038961038963,
+      "type": "paper_sim",
+      "val": 0.07792207792207792
+    },
+    {
+      "source": 1578,
+      "target": 1581,
+      "weight": 0.32608695652173914,
+      "type": "paper_sim",
+      "val": 0.06521739130434782
     },
     {
       "source": 1579,
@@ -96045,6 +96455,13 @@ const G = {
       "val": 0.08759124087591241
     },
     {
+      "source": 1581,
+      "target": 1590,
+      "weight": 0.3823529411764706,
+      "type": "paper_sim",
+      "val": 0.07647058823529412
+    },
+    {
       "source": 1582,
       "target": 1586,
       "weight": 0.446927374301676,
@@ -96066,6 +96483,20 @@ const G = {
       "val": 0.08064516129032258
     },
     {
+      "source": 1582,
+      "target": 1583,
+      "weight": 0.39823008849557523,
+      "type": "paper_sim",
+      "val": 0.07964601769911504
+    },
+    {
+      "source": 1582,
+      "target": 1595,
+      "weight": 0.391304347826087,
+      "type": "paper_sim",
+      "val": 0.0782608695652174
+    },
+    {
       "source": 1583,
       "target": 1584,
       "weight": 0.4504504504504504,
@@ -96085,6 +96516,20 @@ const G = {
       "weight": 0.4368932038834952,
       "type": "paper_sim",
       "val": 0.08737864077669903
+    },
+    {
+      "source": 1583,
+      "target": 1588,
+      "weight": 0.39823008849557523,
+      "type": "paper_sim",
+      "val": 0.07964601769911504
+    },
+    {
+      "source": 1583,
+      "target": 1587,
+      "weight": 0.34782608695652173,
+      "type": "paper_sim",
+      "val": 0.06956521739130435
     },
     {
       "source": 1584,
@@ -96171,6 +96616,27 @@ const G = {
       "val": 0.08287292817679558
     },
     {
+      "source": 1586,
+      "target": 1593,
+      "weight": 0.3591160220994475,
+      "type": "paper_sim",
+      "val": 0.0718232044198895
+    },
+    {
+      "source": 1586,
+      "target": 1594,
+      "weight": 0.3346456692913386,
+      "type": "paper_sim",
+      "val": 0.06692913385826772
+    },
+    {
+      "source": 1586,
+      "target": 1590,
+      "weight": 0.32710280373831774,
+      "type": "paper_sim",
+      "val": 0.06542056074766354
+    },
+    {
       "source": 1587,
       "target": 1595,
       "weight": 0.8411214953271028,
@@ -96234,6 +96700,13 @@ const G = {
       "val": 0.08771929824561403
     },
     {
+      "source": 1588,
+      "target": 1594,
+      "weight": 0.3571428571428571,
+      "type": "paper_sim",
+      "val": 0.07142857142857142
+    },
+    {
       "source": 1589,
       "target": 1595,
       "weight": 0.7079646017699115,
@@ -96262,6 +96735,13 @@ const G = {
       "val": 0.09137055837563451
     },
     {
+      "source": 1589,
+      "target": 1592,
+      "weight": 0.27607361963190186,
+      "type": "paper_sim",
+      "val": 0.05521472392638037
+    },
+    {
       "source": 1590,
       "target": 1595,
       "weight": 0.528169014084507,
@@ -96283,6 +96763,20 @@ const G = {
       "val": 0.08496732026143791
     },
     {
+      "source": 1590,
+      "target": 1592,
+      "weight": 0.34759358288770054,
+      "type": "paper_sim",
+      "val": 0.06951871657754011
+    },
+    {
+      "source": 1590,
+      "target": 1591,
+      "weight": 0.31390134529147984,
+      "type": "paper_sim",
+      "val": 0.06278026905829596
+    },
+    {
       "source": 1591,
       "target": 1594,
       "weight": 0.5776892430278884,
@@ -96290,11 +96784,39 @@ const G = {
       "val": 0.11553784860557768
     },
     {
+      "source": 1591,
+      "target": 1592,
+      "weight": 0.3619909502262444,
+      "type": "paper_sim",
+      "val": 0.07239819004524888
+    },
+    {
+      "source": 1591,
+      "target": 1595,
+      "weight": 0.2717391304347826,
+      "type": "paper_sim",
+      "val": 0.05434782608695652
+    },
+    {
       "source": 1592,
       "target": 1595,
       "weight": 0.41379310344827586,
       "type": "paper_sim",
       "val": 0.08275862068965517
+    },
+    {
+      "source": 1592,
+      "target": 1593,
+      "weight": 0.3548387096774194,
+      "type": "paper_sim",
+      "val": 0.07096774193548387
+    },
+    {
+      "source": 1592,
+      "target": 1594,
+      "weight": 0.3524229074889868,
+      "type": "paper_sim",
+      "val": 0.07048458149779736
     },
     {
       "source": 1593,
@@ -105329,15 +105851,16 @@ const G = {
 let nodes = G.nodes.filter(n => n.type === 'paper');
 let simEdges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
 let citeEdges = G.edges.filter(e => String(e.type) === 'paper_citation');
-let allEdges = G.edges;
+let allEdges = simEdges;
 
 const categories = G.nodes.filter(n => n.type === 'category');
 const catMap = new Map(categories.map(c => [c.cat_id, c]));
 
+// 【修复】：缩小最顶端巨星的尺寸，使整体分布更柔和。基础从 3 改为 3.5，最大不超过 16
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    n.r = 3.0 + 20.0 * Math.pow((n.citations || 0) / maxCites, 0.4);
-    n.collideR = n.r + 15;
+    n.r = 3.5 + 13.0 * Math.pow((n.citations || 0) / maxCites, 0.35);
+    n.collideR = n.r + 10;
 });
 
 let currentFilterCat = 'Rendering';
@@ -105413,12 +105936,9 @@ function setEdgeMode(mode) {
 
 document.getElementById('count-n').innerText = nodes.length;
 
-// 核心修正：绝对禁止在 resize 中调用 ctx.scale，因为会在每次渲染时发生不可逆的双重放大累积导致画面模糊！
 function resize() {
     width = window.innerWidth - 300 - 380;
     height = window.innerHeight;
-    
-    // 物理像素抗锯齿分辨率配置 (仅配置 Canvas 本身物理尺寸，绝不动 ctx 状态！)
     const dpr = window.devicePixelRatio || 1;
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -105428,13 +105948,21 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
+// 【核心修复】：增加分类向心力，把离群点全部往中心拉，杜绝孤岛出现！
+const catCenters = {};
+categories.forEach((c, i) => {
+    const angle = (i / categories.length) * Math.PI * 2;
+    const radius = 250;
+    catCenters[c.cat_id] = { x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
+});
+
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(180).strength(0.04))
-  .force("charge", d3.forceManyBody().strength(-400).distanceMax(1800))
+  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.05))
+  .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000))
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  .force("x", d3.forceX(width / 2).strength(0.02))
-  .force("y", d3.forceY(height / 2).strength(0.02))
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
+  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.04))
+  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.04))
   .stop();
 
 const term2 = document.getElementById('term-2');
@@ -105543,15 +106071,13 @@ function drawArrowLine(ctx, sx, sy, tx, ty, color, width) {
 }
 
 function render() {
-  // 【核心修复】：完全重置 Transform，基于设备真实 DPI 进行全局尺度控制，绝不叠加 Scale！
+  // 【核心】：保证不发生坐标系重影！
   const dpr = window.devicePixelRatio || 1;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  // 宇宙绝对黑底
   ctx.fillStyle = "#05070a";
   ctx.fillRect(0, 0, width, height);
   
-  // 进入星系相机坐标系
   ctx.save();
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
@@ -105564,7 +106090,7 @@ function render() {
       const cy = d3.mean(own, n => n.y);
       c.cx = cx; c.cy = cy; 
       
-      const auraRadius = 300 + own.length * 4;
+      const auraRadius = 250 + own.length * 4;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, auraRadius);
       const hex = c.color.replace('#','');
       const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
@@ -105629,9 +106155,9 @@ function render() {
       ctx.arc(n.x, n.y, n.r, 0, 2 * Math.PI);
       ctx.fill();
       
-      if (n.tier === 'S' || (selectedNode && relatedNodes.has(n.id))) {
+      if ((selectedNode && relatedNodes.has(n.id))) {
           ctx.shadowColor = n.color;
-          ctx.shadowBlur = Math.min(30, 18 / transform.k);
+          ctx.shadowBlur = 18 / transform.k;
           ctx.fill();
           ctx.shadowBlur = 0;
       }
@@ -105650,7 +106176,9 @@ function render() {
       
       let isFocus = selectedNode && relatedNodes.has(n.id);
       if (selectedNode && !isFocus) return; 
-      if (!isFocus && !showGlobalLabels && n.tier !== 'S') return;
+      
+      // 【核心逻辑】：缩放倍数小于2.5时，绝对只有高引用的或者选中的会显示，放大了以后那些深色暗字才会飘出来！
+      if (!isFocus && !showGlobalLabels && n.tier !== 'S' && transform.k < 2.5) return;
 
       const screenR = n.r * transform.k;
       const fontSize = isFocus ? 13 : 11;
@@ -105678,13 +106206,20 @@ function render() {
       }
       drawnBoxes.push(box);
 
-      ctx.fillStyle = isFocus ? "#ffffff" : "rgba(201, 209, 217, 0.85)";
+      if (isFocus) {
+          ctx.fillStyle = "#ffffff";
+      } else if (n.tier === 'S') {
+          ctx.fillStyle = "rgba(201, 209, 217, 0.85)";
+      } else {
+          const textAlpha = Math.max(0, Math.min(1, (transform.k - 2.5) / 1.5));
+          ctx.fillStyle = `rgba(139, 148, 158, ${textAlpha * 0.5})`;
+      }
       lines.forEach((line, i) => {
           ctx.fillText(line, box.left, box.top + i * lineHeight);
       });
   });
 
-  // ctx.restore() 已经不需要，因为最外层每次都重新执行 setTransform(dpr)
+  // 不需要 ctx.restore()，因为一开头就是 setTransform 重置的。
 }
 
 const zoomObj = d3.zoom().scaleExtent([0.05, 10]).on("zoom", (e) => { transform = e.transform; render(); });
@@ -105694,7 +106229,8 @@ function autoFit() {
     const minX = d3.min(nodes, n=>n.x) - 100, maxX = d3.max(nodes, n=>n.x) + 100;
     const minY = d3.min(nodes, n=>n.y) - 100, maxY = d3.max(nodes, n=>n.y) + 100;
     const dx = maxX - minX, dy = maxY - minY;
-    const scale = Math.max(0.2, Math.min(3.0, 1.6 * Math.min(width / dx, height / dy)));
+    // 放宽视野，初始就能看到所有的聚落
+    const scale = Math.max(0.1, Math.min(1.5, 0.7 * Math.min(width / dx, height / dy)));
     const tx = width / 2 - scale * (minX + maxX) / 2;
     const ty = height / 2 - scale * (minY + maxY) / 2;
     d3.select(canvas).transition().duration(1500).call(zoomObj.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
