@@ -179,11 +179,17 @@ const catMap = new Map(categories.map(c => [c.cat_id, c]));
 // 【修复】：缩小最顶端巨星的尺寸，使整体分布更柔和。基础从 3 改为 3.5，最大不超过 16
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    // 降级非顶会论文的视觉权重，防止跨界高引论文（如地震学）喧宾夺主
-    let visualCites = n.citations || 0;
-    if (n.tier !== 'S' && n.tier !== 'A') visualCites = Math.min(visualCites, 100);
-    n.visualCites = visualCites;
-    n.r = 3.5 + 13.0 * Math.pow(visualCites / maxCites, 0.35);
+    n.visualCites = n.citations || 0;
+    // 正常计算原始半径
+    n.r = 3.5 + 13.0 * Math.pow(n.visualCites / maxCites, 0.35);
+    
+    // 【降维打击跨界噪声】：如果不是顶会且引用畸高，说明是跨界抓取错误（如地震射线追踪）。
+    // 强行把它们的体积锁死在基础尘埃大小，消除它们的巨大排斥力和边缘弹射效应。
+    if (n.tier !== 'S' && n.tier !== 'A') {
+        n.visualCites = Math.min(n.visualCites, 30);
+        n.r = 3.5 + 13.0 * Math.pow(n.visualCites / maxCites, 0.35);
+    }
+    
     n.collideR = n.r + 10;
 });
 
@@ -280,14 +286,14 @@ categories.forEach((c, i) => {
     catCenters[c.cat_id] = { x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
 });
 
-// 【修复】：解决高引节点被斥力挤到边缘的问题。让高引节点受到更强的向心力，死死锁在分类中心！
+// 恢复最初自然、松散的引力场布局，取消破坏美感的势阱黑洞效应
 const simulation = d3.forceSimulation(nodes)
   .force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.05))
-  .force("charge", d3.forceManyBody().strength(-250).distanceMax(1200))
+  .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000))
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(d => 0.04 + (d.visualCites || 0)/maxCites * 0.15))
-  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(d => 0.04 + (d.visualCites || 0)/maxCites * 0.15))
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
+  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.04))
+  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.04))
   .stop();
 
 const term2 = document.getElementById('term-2');
