@@ -281,12 +281,31 @@ function toggleGlobalLabels() {
 }
 
 let activeEdgeMode = 'sim'; 
+let animationFrameId = null;
+
+function startPulseAnimation() {
+    if (animationFrameId) return;
+    function pulse() {
+        render();
+        animationFrameId = requestAnimationFrame(pulse);
+    }
+    pulse();
+}
+function stopPulseAnimation() {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+}
+
 function setEdgeMode(mode) {
     activeEdgeMode = mode;
     document.getElementById('btn-sim').classList.remove('active');
     document.getElementById('btn-cite').classList.remove('active');
     document.getElementById(`btn-${mode}`).classList.add('active');
-    render(); 
+    
+    if (mode === 'cite') startPulseAnimation();
+    else { stopPulseAnimation(); render(); }
 }
 
 document.getElementById('count-n').innerText = nodes.length;
@@ -368,7 +387,7 @@ function computeLayoutAsync() {
         term3.innerHTML = logMessages[4] + '<span class="blinking-cursor"></span>';
     }
     
-    if (currentTick < TOTAL_TICKS) {
+        if (currentTick < TOTAL_TICKS) {
         requestAnimationFrame(computeLayoutAsync);
     } else {
         term3.innerHTML = "[OK] Simulation Complete. Accessing Dark Matter Space...";
@@ -377,6 +396,7 @@ function computeLayoutAsync() {
             setTimeout(() => loadingScreen.style.display = 'none', 800);
             
             render();
+            
             autoFit();
             
                         setTimeout(() => {
@@ -459,27 +479,46 @@ function intersectRect(r1, r2) {
 }
 
 function drawArrowLine(ctx, sx, sy, tx, ty, color, width) {
+    // 【脉冲光束流动】：利用时间戳制造极客流光虚线偏移特效！
+    const timeOffset = (Date.now() / 30) % 50; 
+    
+    ctx.save();
     ctx.beginPath();
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
+    
+    // 开启高能发光
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8 / transform.k;
+    
+    // 设定虚线段，15px实线光流，15px暗区
+    ctx.setLineDash([15 / transform.k, 15 / transform.k]);
+    // 负数偏移会让蚂蚁线向目标(tx, ty)方向飞速流动
+    ctx.lineDashOffset = -timeOffset / transform.k;
+    
     ctx.moveTo(sx, sy);
     ctx.lineTo(tx, ty);
     ctx.stroke();
-
+    
+    // 恢复实线画箭头
+    ctx.setLineDash([]);
+    ctx.shadowBlur = 0;
+    
     const angle = Math.atan2(ty - sy, tx - sx);
     const len = Math.hypot(tx - sx, ty - sy);
-    if(len < 30) return; 
-    
-    const arrX = tx - Math.cos(angle) * 15 / transform.k;
-    const arrY = ty - Math.sin(angle) * 15 / transform.k;
-    
-    ctx.beginPath();
-    ctx.fillStyle = color;
-    const headLen = 12 / transform.k;
-    ctx.moveTo(arrX, arrY);
-    ctx.lineTo(arrX - headLen * Math.cos(angle - Math.PI / 6), arrY - headLen * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(arrX - headLen * Math.cos(angle + Math.PI / 6), arrY - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.fill();
+    if(len >= 30) {
+        const arrX = tx - Math.cos(angle) * 15 / transform.k;
+        const arrY = ty - Math.sin(angle) * 15 / transform.k;
+        
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        const headLen = 14 / transform.k;
+        ctx.moveTo(arrX, arrY);
+        ctx.lineTo(arrX - headLen * Math.cos(angle - Math.PI / 6), arrY - headLen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(arrX - headLen * Math.cos(angle + Math.PI / 6), arrY - headLen * Math.sin(angle + Math.PI / 6));
+        ctx.fill();
+    }
+    ctx.restore();
 }
 
 function render() {
@@ -676,6 +715,7 @@ function focusNode(id, doZoom=false) {
     const n = nodes.find(x => x.id === id);
     if(!n) return;
     selectedNode = n;
+    if (activeEdgeMode === 'cite') startPulseAnimation();
     showDetail(selectedNode); 
     if (doZoom) {
         d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, height/2 - n.y*1.2).scale(1.2));
@@ -743,6 +783,7 @@ function showDetail(d) {
 }
 
 function closeDetail() {
+  stopPulseAnimation();
   document.getElementById('d-edge-mode-box').style.display = 'none';
   document.getElementById('d-edge-mode-box').style.display = 'none';
   document.getElementById('d-meta-box').style.display = 'none';
