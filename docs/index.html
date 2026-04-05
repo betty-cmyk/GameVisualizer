@@ -98663,7 +98663,7 @@ const simulation = d3.forceSimulation(nodes)
   .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000)) // 强大的排斥力，狠狠撑开星团，拒绝实心球
   .force("center", d3.forceCenter(width / 2, height / 2))
   .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  \.force("x", d3.forceX(d => {
+    .force("x", d3.forceX(d => {
       const cat = catCenters[d.primary_category];
       if(!cat) return width/2;
       let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
