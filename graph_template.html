@@ -306,39 +306,20 @@ window.addEventListener('resize', resize); resize();
 const catCenters = {};
 categories.forEach((c, i) => {
     const angle = (i / categories.length) * Math.PI * 2;
-    // 【中心引力收紧】：基准半径从 380 紧缩到 280，增加整体宇宙的宏观聚拢感
-    const fluctuation = 0.15 * Math.sin(i * 1234.5);
-    const radius = 280 * (1 + fluctuation); 
-    catCenters[c.cat_id] = { baseAngle: angle, baseR: radius, x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
+    // 【椭圆偏心分布】：X轴更宽(450)，Y轴更扁(300)，并加入 20% 的不规则错落，彻底打破正圆感
+    const fluctuation = 0.2 * Math.sin(i * 1234.5);
+    const radiusX = 450 * (1 + fluctuation);
+    const radiusY = 300 * (1 + fluctuation);
+    catCenters[c.cat_id] = { x: width/2 + Math.cos(angle)*radiusX, y: height/2 + Math.sin(angle)*radiusY };
 });
 
-// 【星云旋臂引擎】：顶会高引凝聚在中心，尘埃顺着圆周轨道舒展飘散，形成漂亮弧线
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(100).strength(0.04)) // 弹性连线维持学术簇的有机形态
-    .force("charge", d3.forceManyBody().strength(-150).distanceMax(800)) // 斥力撑开，避免粘连
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-    .force("x", d3.forceX(d => {
-        const cat = catCenters[d.primary_category];
-        if(!cat) return width/2;
-        let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-        let dustFactor = 1.0 - Math.pow(citeRatio, 0.3); // 0 为最强核心，1 为最边缘尘埃
-      
-        // 【有机螺旋线骨架】：弧度展开极宽（达 2.5 弧度），同时半径也被甩出（达 200px）
-        // 加入随机微小扰动厚度，让跑道变成一条宽广的带子，而非死板的细线
-        let angleOffset = dustFactor * 2.5 + ((d.id * 137) % 100 / 100 - 0.5) * 0.6;
-        let rOffset = dustFactor * 200 + ((d.id * 93) % 100 / 100 - 0.5) * 80;
-        return width/2 + Math.cos(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
-    }).strength(0.07)) // 增强向心引力，逼迫星团服从螺旋骨架
-    .force("y", d3.forceY(d => {
-        const cat = catCenters[d.primary_category];
-        if(!cat) return height/2;
-        let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-        let dustFactor = 1.0 - Math.pow(citeRatio, 0.3);
-        let angleOffset = dustFactor * 2.5 + ((d.id * 137) % 100 / 100 - 0.5) * 0.6;
-        let rOffset = dustFactor * 200 + ((d.id * 93) % 100 / 100 - 0.5) * 80;
-        return height/2 + Math.sin(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
-    }).strength(0.07))
+  \.force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.06)) // 强大的真实连线牵引，拉出跨界连串悬臂
+  .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000)) // 强大的排斥力，狠狠撑开星团，拒绝实心球
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
+  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.045)) // 纯粹的向心力，不做人工干预
+  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.045))
   .stop();
 
 const term2 = document.getElementById('term-2');
