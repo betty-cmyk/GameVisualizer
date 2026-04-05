@@ -98901,31 +98901,23 @@ function render() {
   ctx.restore();
 
   let activeEdges = [];
-  let relatedNodes = new Set();
-  if (selectedNode) {
-      relatedNodes.add(selectedNode.id);
-      // 永远用 simEdges 照亮关联节点的光晕
-      simEdges.forEach(e => {
-          if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
-              relatedNodes.add(e.source.id); 
-              relatedNodes.add(e.target.id);
-          }
-      });
-      // 根据按钮，专门筛选出要画的 高亮连接线 (蓝/红紫)
-      const edgePool = (activeEdgeMode === 'sim') ? simEdges : citeEdges;
-      edgePool.forEach(e => {
-          if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
-              activeEdges.push(e);
-              if (activeEdgeMode === 'cite') {
-                  relatedNodes.add(e.source.id); 
-                  relatedNodes.add(e.target.id);
-              }
-          }
-      });
-  }
+    let relatedNodes = new Set();
+    if (selectedNode) {
+        relatedNodes.add(selectedNode.id);
+        
+        // 【精准关联】：如果处于相似网络模式，就只收集相似的邻居；如果处于引用模式，就只收集引用的邻居
+        const edgePool = (activeEdgeMode === 'sim') ? simEdges : citeEdges;
+        edgePool.forEach(e => {
+            if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
+                activeEdges.push(e);
+                relatedNodes.add(e.source.id); 
+                relatedNodes.add(e.target.id);
+            }
+        });
+    }
 
-  ctx.save();
-  ctx.translate(transform.x, transform.y);
+    ctx.save();
+    ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
   ctx.beginPath();
