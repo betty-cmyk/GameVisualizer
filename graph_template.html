@@ -306,7 +306,9 @@ window.addEventListener('resize', resize); resize();
 const catCenters = {};
 categories.forEach((c, i) => {
     const angle = (i / categories.length) * Math.PI * 2;
-    const radius = 380; // 【星云扩张】：大幅扩大宇宙基准圆周半径，避免拥挤
+    // 【打破圆环】：基准半径 380，加入 ±10% 的错落浮动，让每个星系离绝对中心的距离长短不一
+    const fluctuation = 0.1 * Math.sin(i * 1234.5);
+    const radius = 380 * (1 + fluctuation); 
     catCenters[c.cat_id] = { baseAngle: angle, baseR: radius, x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
 });
 
