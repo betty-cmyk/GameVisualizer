@@ -184,7 +184,8 @@ const G = {GRAPH_DATA};
 let nodes = G.nodes.filter(n => n.type === 'paper');
 let simEdges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
 let citeEdges = G.edges.filter(e => String(e.type) === 'paper_citation');
-let allEdges = simEdges;
+// 【核心坐标修复】：真实引用边必须进入 D3 物理场，否则不会生成 x,y 坐标，无法渲染！
+let allEdges = [...simEdges, ...citeEdges];
 
 const categories = G.nodes.filter(n => n.type === 'category');
 const catMap = new Map(categories.map(c => [c.cat_id, c]));
