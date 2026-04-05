@@ -98668,9 +98668,9 @@ const simulation = d3.forceSimulation(nodes)
       const cat = catCenters[d.primary_category];
       if(!cat) return width/2;
       let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-            // 【黄金比例弧形】：偏角调整到 1.5 弧度(85度)，尾迹优雅但不串台；离心半径放宽到 80px，保持饱满感
-      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 1.3;
-      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 90;
+            // 【黄金比例弧形】：偏角调整到 1.2 弧度(85度)，尾迹优雅但不串台；离心半径放宽到 50px
+      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 1.2;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 50;
       return width/2 + Math.cos(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
   }).strength(0.08)) // 增强坐标顺从度，逼迫它们站成一排弧线
   .force("y", d3.forceY(d => {
