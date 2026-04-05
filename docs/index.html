@@ -105960,13 +105960,14 @@ categories.forEach((c, i) => {
     catCenters[c.cat_id] = { x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
 });
 
+// 【修复】：解决高引节点被斥力挤到边缘的问题。让高引节点受到更强的向心力，死死锁在分类中心！
 const simulation = d3.forceSimulation(nodes)
   .force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.05))
-  .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000))
+  .force("charge", d3.forceManyBody().strength(-250).distanceMax(1200))
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
-  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.04))
-  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.04))
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
+  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(d => 0.04 + (d.visualCites || 0)/maxCites * 0.15))
+  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(d => 0.04 + (d.visualCites || 0)/maxCites * 0.15))
   .stop();
 
 const term2 = document.getElementById('term-2');
