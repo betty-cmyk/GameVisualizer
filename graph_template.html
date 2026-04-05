@@ -293,18 +293,33 @@ window.addEventListener('resize', resize); resize();
 const catCenters = {};
 categories.forEach((c, i) => {
     const angle = (i / categories.length) * Math.PI * 2;
-    const radius = 250;
-    catCenters[c.cat_id] = { x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
+    const radius = 380; // 【星云扩张】：大幅扩大宇宙基准圆周半径，避免拥挤
+    catCenters[c.cat_id] = { baseAngle: angle, baseR: radius, x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
 });
 
-// 恢复最初自然、松散的引力场布局，取消破坏美感的势阱黑洞效应
+// 【星云旋臂引擎】：顶会高引凝聚在中心，尘埃顺着圆周轨道舒展飘散，形成漂亮弧线
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.05))
-  .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000))
+  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.035)) // 连线拉力变松弛，允许节点舒展
+  .force("charge", d3.forceManyBody().strength(-120).distanceMax(800)) // 减弱绝对斥力，消除生硬的圆球边界抱团感
   .force("center", d3.forceCenter(width / 2, height / 2))
   .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
-  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.04))
-  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.04))
+  .force("x", d3.forceX(d => {
+      const cat = catCenters[d.primary_category];
+      if(!cat) return width/2;
+      let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
+      // 根据引用量决定抛洒偏角：越是尘埃，偏角越大 (最大 1.2 弧度)，在轨道上形成弧形星云拖尾
+      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.5)) * 1.2;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 110;
+      return width/2 + Math.cos(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
+  }).strength(0.05))
+  .force("y", d3.forceY(d => {
+      const cat = catCenters[d.primary_category];
+      if(!cat) return height/2;
+      let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
+      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.5)) * 1.2;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 110;
+      return height/2 + Math.sin(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
+  }).strength(0.05))
   .stop();
 
 const term2 = document.getElementById('term-2');
@@ -447,13 +462,14 @@ function render() {
       const cx = d3.mean(own, n => n.x);
       const cy = d3.mean(own, n => n.y);
       c.cx = cx; c.cy = cy; 
-      
-      const auraRadius = 250 + own.length * 4;
+          
+      // 【星云光晕】：让光环变得更宽广、更虚幻，中心提亮，边缘柔和融合以适应旋臂形状
+      const auraRadius = 350 + own.length * 2.5;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, auraRadius);
       const hex = c.color.replace('#','');
       const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
-      grad.addColorStop(0, `rgba(${r},${g},${b},0.08)`);
-      grad.addColorStop(0.5, `rgba(${r},${g},${b},0.02)`);
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.12)`); // 核心提亮
+      grad.addColorStop(0.35, `rgba(${r},${g},${b},0.03)`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.beginPath(); ctx.fillStyle = grad; ctx.arc(cx, cy, auraRadius, 0, Math.PI * 2); ctx.fill();
   });
