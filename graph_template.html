@@ -306,20 +306,39 @@ window.addEventListener('resize', resize); resize();
 const catCenters = {};
 categories.forEach((c, i) => {
     const angle = (i / categories.length) * Math.PI * 2;
-    // 【打破圆环】：基准半径 380，加入 ±10% 的错落浮动，让每个星系离绝对中心的距离长短不一
+    // 【中心引力收紧】：基准半径从 380 紧缩到 280，增加整体宇宙的宏观聚拢感
     const fluctuation = 0.15 * Math.sin(i * 1234.5);
-    const radius = 380 * (1 + fluctuation); 
+    const radius = 280 * (1 + fluctuation); 
     catCenters[c.cat_id] = { baseAngle: angle, baseR: radius, x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
 });
 
 // 【星云旋臂引擎】：顶会高引凝聚在中心，尘埃顺着圆周轨道舒展飘散，形成漂亮弧线
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(120).strength(0.05)) // 恢复弹簧拉力，让真实的学术连线拉出“连成串”的自然藤蔓形态
-  .force("charge", d3.forceManyBody().strength(-180).distanceMax(1000)) // 恢复强大的斥力，把拥挤的节点狠狠撑开
-  .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.04)) // 极其温柔的向心引力
-  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.04))
+  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(100).strength(0.04)) // 弹性连线维持学术簇的有机形态
+    .force("charge", d3.forceManyBody().strength(-150).distanceMax(800)) // 斥力撑开，避免粘连
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
+    .force("x", d3.forceX(d => {
+        const cat = catCenters[d.primary_category];
+        if(!cat) return width/2;
+        let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
+        let dustFactor = 1.0 - Math.pow(citeRatio, 0.3); // 0 为最强核心，1 为最边缘尘埃
+      
+        // 【有机螺旋线骨架】：弧度展开极宽（达 2.5 弧度），同时半径也被甩出（达 200px）
+        // 加入随机微小扰动厚度，让跑道变成一条宽广的带子，而非死板的细线
+        let angleOffset = dustFactor * 2.5 + ((d.id * 137) % 100 / 100 - 0.5) * 0.6;
+        let rOffset = dustFactor * 200 + ((d.id * 93) % 100 / 100 - 0.5) * 80;
+        return width/2 + Math.cos(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
+    }).strength(0.07)) // 增强向心引力，逼迫星团服从螺旋骨架
+    .force("y", d3.forceY(d => {
+        const cat = catCenters[d.primary_category];
+        if(!cat) return height/2;
+        let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
+        let dustFactor = 1.0 - Math.pow(citeRatio, 0.3);
+        let angleOffset = dustFactor * 2.5 + ((d.id * 137) % 100 / 100 - 0.5) * 0.6;
+        let rOffset = dustFactor * 200 + ((d.id * 93) % 100 / 100 - 0.5) * 80;
+        return height/2 + Math.sin(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
+    }).strength(0.07))
   .stop();
 
 const term2 = document.getElementById('term-2');
