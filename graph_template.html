@@ -518,12 +518,22 @@ function render() {
   let relatedNodes = new Set();
   if (selectedNode) {
       relatedNodes.add(selectedNode.id);
+      // 永远用 simEdges 照亮关联节点的光晕
+      simEdges.forEach(e => {
+          if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
+              relatedNodes.add(e.source.id); 
+              relatedNodes.add(e.target.id);
+          }
+      });
+      // 根据按钮，专门筛选出要画的 高亮连接线 (蓝/红紫)
       const edgePool = (activeEdgeMode === 'sim') ? simEdges : citeEdges;
       edgePool.forEach(e => {
           if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
               activeEdges.push(e);
-              relatedNodes.add(e.source.id); 
-              relatedNodes.add(e.target.id);
+              if (activeEdgeMode === 'cite') {
+                  relatedNodes.add(e.source.id); 
+                  relatedNodes.add(e.target.id);
+              }
           }
       });
   }
@@ -548,10 +558,11 @@ function render() {
       } else {
           activeEdges.forEach(e => {
               if (e.target.id === selectedNode.id) {
-                  drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(248, 81, 73, 0.9)", 0.8 / transform.k);
-              } 
-              else if (e.source.id === selectedNode.id) {
-                  drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(210, 168, 255, 0.9)", 0.8 / transform.k);
+                  // 红色：它被别人引用
+                  drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(248, 81, 73, 0.9)", 1.5 / transform.k);
+              } else if (e.source.id === selectedNode.id) {
+                  // 紫色：它引用了别人
+                  drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(210, 168, 255, 0.9)", 1.5 / transform.k);
               }
           });
       }
@@ -705,6 +716,7 @@ function showDetail(d) {
   document.getElementById('d-title').innerText = d.title_zh || d.full_title;
   document.getElementById('d-title-en').innerText = d.title_zh ? d.full_title : '';
   document.getElementById('d-edge-mode-box').style.display = 'flex';
+  document.getElementById('d-edge-mode-box').style.display = 'flex';
   document.getElementById('d-meta-box').style.display = 'block';
   document.getElementById('d-abs-container').style.display = 'block';
   document.getElementById('d-author').innerText = d.author || '-';
@@ -730,6 +742,7 @@ function showDetail(d) {
 }
 
 function closeDetail() {
+  document.getElementById('d-edge-mode-box').style.display = 'none';
   document.getElementById('d-edge-mode-box').style.display = 'none';
   document.getElementById('d-meta-box').style.display = 'none';
   document.getElementById('d-abs-container').style.display = 'none';
