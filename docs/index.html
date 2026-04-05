@@ -98650,13 +98650,12 @@ window.addEventListener('resize', resize); resize();
 
 // 【核心修复】：增加分类向心力，把离群点全部往中心拉，杜绝孤岛出现！
 const catCenters = {};
+// 【打破小人椭圆】：使用一组人工调优的自然波动系数，产生极其错落、浩瀚的星云群落分布
+const radVariations = [1.0, 1.25, 0.85, 1.15, 0.9, 1.3, 0.95, 1.1];
 categories.forEach((c, i) => {
     const angle = (i / categories.length) * Math.PI * 2;
-    // 【椭圆偏心分布】：X轴更宽(450)，Y轴更扁(300)，并加入 20% 的不规则错落，彻底打破正圆感
-    const fluctuation = 0.2 * Math.sin(i * 1234.5);
-    const radiusX = 450 * (1 + fluctuation);
-    const radiusY = 300 * (1 + fluctuation);
-    catCenters[c.cat_id] = { x: width/2 + Math.cos(angle)*radiusX, y: height/2 + Math.sin(angle)*radiusY };
+    const radius = 350 * radVariations[i % radVariations.length]; 
+    catCenters[c.cat_id] = { baseAngle: angle, baseR: radius, x: width/2 + Math.cos(angle)*radius, y: height/2 + Math.sin(angle)*radius };
 });
 
 const simulation = d3.forceSimulation(nodes)
@@ -98664,8 +98663,21 @@ const simulation = d3.forceSimulation(nodes)
   .force("charge", d3.forceManyBody().strength(-200).distanceMax(1000)) // 强大的排斥力，狠狠撑开星团，拒绝实心球
   .force("center", d3.forceCenter(width / 2, height / 2))
   .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
-  .force("x", d3.forceX(d => catCenters[d.primary_category] ? catCenters[d.primary_category].x : width/2).strength(0.045)) // 纯粹的向心力，不做人工干预
-  .force("y", d3.forceY(d => catCenters[d.primary_category] ? catCenters[d.primary_category].y : height/2).strength(0.045))
+  \.force("x", d3.forceX(d => {
+      const cat = catCenters[d.primary_category];
+      if(!cat) return width/2;
+      let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
+      // 【数学引导长尾】：让尘埃顺着星系轨道拖出长达 1.8 弧度(约100度)的极长尾迹
+      let angleOffset = (1.0 - Math.pow(citeRatio, 0.4)) * 1.8;
+      return width/2 + Math.cos(cat.baseAngle + angleOffset) * cat.baseR;
+  }).strength(0.04)) // 【物理蓬松厚度】：温柔的向心力配合 -180 的强烈斥力，会让原本扁平的跑道炸开成宽阔优美的长悬臂！
+  .force("y", d3.forceY(d => {
+      const cat = catCenters[d.primary_category];
+      if(!cat) return height/2;
+      let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
+      let angleOffset = (1.0 - Math.pow(citeRatio, 0.4)) * 1.8;
+      return height/2 + Math.sin(cat.baseAngle + angleOffset) * cat.baseR;
+  }).strength(0.04))
   .stop();
 
 const term2 = document.getElementById('term-2');
