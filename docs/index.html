@@ -12,29 +12,20 @@
 
   /* --- 科幻级加载屏 --- */
   #loading { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #0d1117 0%, #05070a 100%); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s ease-in-out, visibility 0.8s; }
-  
-  /* 扫描雷达环 */
   .radar-container { position: relative; width: 180px; height: 180px; margin-bottom: 40px; }
   .radar-ring { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; border: 1px solid transparent; border-top-color: #58a6ff; border-bottom-color: #58a6ff; animation: spin-forward 3s linear infinite; opacity: 0.8; box-shadow: 0 0 15px rgba(88, 166, 255, 0.4), inset 0 0 15px rgba(88, 166, 255, 0.4); }
   .radar-ring.inner { top: 15px; left: 15px; width: 150px; height: 150px; border-top-color: #e3b341; border-bottom-color: transparent; border-left-color: #e3b341; border-right-color: transparent; animation: spin-reverse 2s linear infinite; box-shadow: 0 0 10px rgba(227, 179, 65, 0.3); opacity: 0.6; }
   .radar-ring.core { top: 35px; left: 35px; width: 110px; height: 110px; border: 2px dashed #79c0ff; animation: spin-forward 8s linear infinite; }
   .radar-scanner { position: absolute; top: 50%; left: 50%; width: 90px; height: 2px; background: linear-gradient(90deg, transparent 0%, #58a6ff 100%); transform-origin: 0% 50%; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; box-shadow: 0 0 8px #58a6ff; }
-  
   @keyframes spin-forward { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
   @keyframes scan { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-  /* 终端打字机文字 */
   .terminal-box { width: 320px; font-family: 'Courier New', Courier, monospace; font-size: 13px; color: #58a6ff; text-align: left; text-shadow: 0 0 5px rgba(88, 166, 255, 0.6); }
   .terminal-line { margin: 5px 0; min-height: 18px; }
   .blinking-cursor { display: inline-block; width: 8px; height: 14px; background-color: #58a6ff; animation: blink 1s step-end infinite; vertical-align: bottom; margin-left: 5px; }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-  /* 数据跃迁进度条 */
   .progress-wrap { width: 320px; height: 4px; background: #161b22; margin-top: 15px; border-radius: 2px; overflow: hidden; position: relative; }
   .progress-bar { height: 100%; width: 0%; background: #58a6ff; box-shadow: 0 0 10px #58a6ff; transition: width 0.1s linear; }
-
-  /* CRT 扫描线叠加层 */
   #loading::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; pointer-events: none; z-index: 10; }
 
   /* --- 主界面 UI --- */
@@ -50,6 +41,7 @@
   .list-title { color: #c9d1d9; margin-bottom: 8px; font-size: 13px; line-height: 1.5; white-space: normal; word-break: break-word; }
   .list-meta { color: #58a6ff; font-size: 11px; display: flex; justify-content: space-between; }
 
+  /* 右侧边栏 (绝对常驻，完全钉死在右侧) */
   #sidebar-right { width: 380px; min-width: 380px; background: rgba(8,11,16,0.9); border-left: 1px solid #1f242e; display: flex; flex-direction: column; z-index: 100; backdrop-filter: blur(12px); position: absolute; right: 0; top: 0; bottom: 0; font-family: -apple-system, sans-serif; }
   .detail-body { flex: 1; overflow-y: auto; padding: 20px; font-size: 13px; line-height: 1.6; color: #8b949e; }
   .detail-body::-webkit-scrollbar, #paper-list::-webkit-scrollbar { width: 6px; }
@@ -65,12 +57,26 @@
   .detail-text { text-align: justify; margin-bottom: 20px; }
   .detail-link-btn { display: block; background: #238636; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: bold; text-align: center; margin-top: 10px; transition: 0.2s; }
   .detail-link-btn:hover { background: #2ea043; }
-  .close-btn { background: none; border: none; color: #8b949e; font-size: 22px; cursor: pointer; }
+  
+  /* 高亮边切换器 (全新！针对被选中的核心论文) */
+  .edge-mode-switch { display: flex; background: #161b22; border-radius: 6px; overflow: hidden; margin-bottom: 20px; border: 1px solid #30363d; }
+  .edge-mode-btn { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: bold; color: #8b949e; cursor: pointer; transition: 0.2s; user-select: none; }
+  .edge-mode-btn:not(:last-child) { border-right: 1px solid #30363d; }
+  .edge-mode-btn.active.sim { background: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+  .edge-mode-btn.active.cite { background: rgba(210, 168, 255, 0.15); color: #d2a8ff; }
 
-  #top-bar { position: absolute; top: 15px; left: 320px; z-index: 150; background: rgba(13,17,23,0.85); border: 1px solid #1f242e; border-radius: 8px; padding: 8px 15px; display: flex; align-items: center; gap: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.5); font-family: -apple-system, sans-serif; }
-  .toggle-label { font-size: 13px; color: #c9d1d9; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; font-weight: bold; }
-  .toggle-label input { cursor: pointer; width: 16px; height: 16px; }
+  /* 极简全局文字开关 Icon */
+  #toggle-labels-btn {
+    position: absolute; top: 20px; left: 320px; z-index: 150;
+    width: 40px; height: 40px; background: rgba(13,17,23,0.85); border: 1px solid #1f242e;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    transition: 0.3s; font-size: 18px; color: #8b949e;
+  }
+  #toggle-labels-btn:hover { border-color: #58a6ff; transform: scale(1.05); }
+  #toggle-labels-btn.active { background: rgba(88,166,255,0.1); color: #58a6ff; border-color: #58a6ff; box-shadow: 0 0 15px rgba(88,166,255,0.4); }
 
+  /* 底部图表托盘 */
   #charts-btn { position: absolute; bottom: 20px; left: 320px; background: #161b22; border: 1px solid #1f242e; color: #c9d1d9; padding: 8px 16px; border-radius: 20px; cursor: pointer; z-index: 150; font-size: 12px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: 0.2s; font-family: -apple-system, sans-serif; }
   #charts-btn:hover { background: #1f242e; color: #fff; }
   #charts-tray { position: absolute; bottom: -280px; left: 300px; right: 380px; height: 280px; background: rgba(11,14,20,0.95); border-top: 1px solid #1f242e; display: flex; padding: 15px; gap: 15px; z-index: 90; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(12px); font-family: -apple-system, sans-serif; }
@@ -79,13 +85,13 @@
   .chart-title { font-size: 13px; color: #8b949e; margin-bottom: 5px; font-weight: bold; text-align: center; }
   .chart-canvas { flex: 1; min-height: 180px; }
   
+  /* 提示框 */
   #tooltip { position: absolute; pointer-events: none; background: rgba(13,17,23,0.95); border: 1px solid #30363d; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #c9d1d9; display: none; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.8); font-family: -apple-system, sans-serif; }
   .tt-title { font-weight: bold; color: #e6edf3; margin-bottom: 4px; }
 </style>
 </head>
 <body>
 
-<!-- 极客科幻加载屏 -->
 <div id="loading">
   <div class="radar-container">
     <div class="radar-ring"></div>
@@ -116,13 +122,7 @@
     <div id="paper-list"></div>
   </div>
 
-  <div id="top-bar">
-    <label class="toggle-label">
-      <input type="checkbox" id="global-labels-cb" onchange="render()"> 🌟 开启全景星图标签
-    </label>
-    <span style="color: #484f58;">|</span>
-    <span style="font-size:12px; color:#8b949e; font-family:-apple-system, sans-serif;">提示：关闭标签进入纯净暗物质模式。点击圆点激活关联脉络。</span>
-  </div>
+  <div id="toggle-labels-btn" title="Toggle Global Labels" onclick="toggleGlobalLabels()">👁️</div>
 
   <canvas id="main-canvas"></canvas>
 
@@ -141,11 +141,16 @@
   <div id="sidebar-right">
     <div class="sb-header">
       <span>星系档案</span>
-      <button class="close-btn" onclick="closeDetail()">×</button>
     </div>
     <div class="detail-body">
       <div class="detail-title" id="d-title">等待观测指令...</div>
-      <div class="detail-title-en" id="d-title-en" style="color:#6e7681;">请在星图中任意点击一颗星星，或从左侧列表选择。</div>
+      <div class="detail-title-en" id="d-title-en" style="color:#6e7681;">星图中心计算中...</div>
+      
+      <!-- 【核心】：高亮连线模式切换器！ -->
+      <div class="edge-mode-switch" id="d-edge-mode-box" style="display:none;">
+        <div class="edge-mode-btn active sim" id="btn-sim" onclick="setEdgeMode('sim')">🌌 语义相似网络</div>
+        <div class="edge-mode-btn cite" id="btn-cite" onclick="setEdgeMode('cite')">🔗 真实学术引用</div>
+      </div>
       
       <div class="detail-meta-box" id="d-meta-box" style="display:none;">
         <div class="meta-row"><span class="meta-label">👤 作者</span><span class="meta-val" id="d-author">-</span></div>
@@ -105323,6 +105328,7 @@ const G = {
 
 let nodes = G.nodes.filter(n => n.type === 'paper');
 let simEdges = G.edges.filter(e => String(e.type).startsWith('paper_sim'));
+let citeEdges = G.edges.filter(e => String(e.type) === 'paper_citation');
 let allEdges = G.edges;
 
 const categories = G.nodes.filter(n => n.type === 'category');
@@ -105380,17 +105386,45 @@ let width, height, transform = d3.zoomIdentity;
 let selectedNode = null;
 let hoveredNode = null;
 
+let showGlobalLabels = false;
+function toggleGlobalLabels() {
+    showGlobalLabels = !showGlobalLabels;
+    const btn = document.getElementById('toggle-labels-btn');
+    if (showGlobalLabels) {
+        btn.classList.add('active');
+        btn.innerText = '🌟';
+    } else {
+        btn.classList.remove('active');
+        btn.innerText = '👁️';
+        selectedNode = null;
+        closeDetail();
+    }
+    render();
+}
+
+let activeEdgeMode = 'sim'; 
+function setEdgeMode(mode) {
+    activeEdgeMode = mode;
+    document.getElementById('btn-sim').classList.remove('active');
+    document.getElementById('btn-cite').classList.remove('active');
+    document.getElementById(`btn-${mode}`).classList.add('active');
+    render(); 
+}
+
 document.getElementById('count-n').innerText = nodes.length;
 
+// 核心修正：绝对禁止在 resize 中调用 ctx.scale，因为会在每次渲染时发生不可逆的双重放大累积导致画面模糊！
 function resize() {
     width = window.innerWidth - 300 - 380;
     height = window.innerHeight;
-    canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
+    
+    // 物理像素抗锯齿分辨率配置 (仅配置 Canvas 本身物理尺寸，绝不动 ctx 状态！)
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     canvas.style.marginLeft = '300px';
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 }
 window.addEventListener('resize', resize); resize();
 
@@ -105403,7 +105437,6 @@ const simulation = d3.forceSimulation(nodes)
   .force("y", d3.forceY(height / 2).strength(0.02))
   .stop();
 
-// --- 科幻终端打字机效果 --- 
 const term2 = document.getElementById('term-2');
 const term3 = document.getElementById('term-3');
 const loadBar = document.getElementById('loading-bar');
@@ -105413,7 +105446,7 @@ const logMessages = [
     "[OK] Database Connected. Loading 1553 Nodes...",
     "[OK] Deep Dive Links Established.",
     "[..] Initiating TF-IDF Dimensionality Reduction...",
-    "[OK] 3510 Academic Similarity Edges Verified.",
+    "[OK] Academic Similarity Edges Verified.",
     "[..] Calculating Force-Directed Gravity..."
 ];
 
@@ -105485,12 +105518,40 @@ function intersectRect(r1, r2) {
   return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
 }
 
+function drawArrowLine(ctx, sx, sy, tx, ty, color, width) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(tx, ty);
+    ctx.stroke();
+
+    const angle = Math.atan2(ty - sy, tx - sx);
+    const len = Math.hypot(tx - sx, ty - sy);
+    if(len < 30) return; 
+    
+    const arrX = tx - Math.cos(angle) * 15 / transform.k;
+    const arrY = ty - Math.sin(angle) * 15 / transform.k;
+    
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    const headLen = 12 / transform.k;
+    ctx.moveTo(arrX, arrY);
+    ctx.lineTo(arrX - headLen * Math.cos(angle - Math.PI / 6), arrY - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(arrX - headLen * Math.cos(angle + Math.PI / 6), arrY - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.fill();
+}
+
 function render() {
-  ctx.save();
+  // 【核心修复】：完全重置 Transform，基于设备真实 DPI 进行全局尺度控制，绝不叠加 Scale！
+  const dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // 宇宙绝对黑底
   ctx.fillStyle = "#05070a";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.fillRect(0, 0, width, height);
   
+  // 进入星系相机坐标系
   ctx.save();
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
@@ -105515,12 +105576,11 @@ function render() {
   ctx.globalCompositeOperation = "source-over";
   ctx.restore();
 
-    let activeEdges = [];
+  let activeEdges = [];
   let relatedNodes = new Set();
   if (selectedNode) {
       relatedNodes.add(selectedNode.id);
       const edgePool = (activeEdgeMode === 'sim') ? simEdges : citeEdges;
-      
       edgePool.forEach(e => {
           if (e.source.id === selectedNode.id || e.target.id === selectedNode.id) {
               activeEdges.push(e);
@@ -105534,14 +105594,12 @@ function render() {
   ctx.translate(transform.x, transform.y);
   ctx.scale(transform.k, transform.k);
 
-  // 永远常驻底层的相似度虚线
   ctx.beginPath();
   ctx.strokeStyle = "rgba(255, 255, 255, 0.03)"; 
   ctx.lineWidth = 0.6 / transform.k;
   simEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
   ctx.stroke();
 
-  // 高亮焦点网
   if (activeEdges.length > 0) {
       if (activeEdgeMode === 'sim') {
           ctx.beginPath();
@@ -105550,11 +105608,11 @@ function render() {
           activeEdges.forEach(e => { ctx.moveTo(e.source.x, e.source.y); ctx.lineTo(e.target.x, e.target.y); });
           ctx.stroke();
       } else {
-          // 真实学术引用模式（画箭头）
           activeEdges.forEach(e => {
               if (e.target.id === selectedNode.id) {
                   drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(248, 81, 73, 0.9)", 2.0 / transform.k);
-              } else if (e.source.id === selectedNode.id) {
+              } 
+              else if (e.source.id === selectedNode.id) {
                   drawArrowLine(ctx, e.source.x, e.source.y, e.target.x, e.target.y, "rgba(210, 168, 255, 0.9)", 2.0 / transform.k);
               }
           });
@@ -105573,7 +105631,7 @@ function render() {
       
       if (n.tier === 'S' || (selectedNode && relatedNodes.has(n.id))) {
           ctx.shadowColor = n.color;
-          ctx.shadowBlur = 18 / transform.k;
+          ctx.shadowBlur = Math.min(30, 18 / transform.k);
           ctx.fill();
           ctx.shadowBlur = 0;
       }
@@ -105585,8 +105643,6 @@ function render() {
   let drawnBoxes = [];
   let sortedNodes = [...nodes].sort((a,b) => (b.citations||0) - (a.citations||0));
   
-  const showGlobalLabels = document.getElementById('global-labels-cb').checked;
-
   sortedNodes.forEach(n => {
       const screenX = n.x * transform.k + transform.x;
       const screenY = n.y * transform.k + transform.y;
@@ -105594,7 +105650,6 @@ function render() {
       
       let isFocus = selectedNode && relatedNodes.has(n.id);
       if (selectedNode && !isFocus) return; 
-      
       if (!isFocus && !showGlobalLabels && n.tier !== 'S') return;
 
       const screenR = n.r * transform.k;
@@ -105629,7 +105684,7 @@ function render() {
       });
   });
 
-  ctx.restore();
+  // ctx.restore() 已经不需要，因为最外层每次都重新执行 setTransform(dpr)
 }
 
 const zoomObj = d3.zoom().scaleExtent([0.05, 10]).on("zoom", (e) => { transform = e.transform; render(); });
@@ -105649,6 +105704,7 @@ function focusNode(id, doZoom=false) {
     const n = nodes.find(x => x.id === id);
     if(!n) return;
     selectedNode = n;
+    showDetail(selectedNode); 
     if (doZoom) {
         d3.select(canvas).transition().duration(750).call(zoomObj.transform, d3.zoomIdentity.translate(width/2 - n.x*1.2, height/2 - n.y*1.2).scale(1.2));
     }
@@ -105676,19 +105732,18 @@ canvas.addEventListener('mousemove', e => {
 
 canvas.addEventListener('click', () => {
   if (hoveredNode) {
-    selectedNode = hoveredNode; 
-    showDetail(selectedNode);
+    focusNode(hoveredNode.id, false);
   } else {
     selectedNode = null; 
     closeDetail();
+    render();
   }
-  render();
 });
 
 function showDetail(d) {
-  document.getElementById('sidebar-right').classList.add('active');
   document.getElementById('d-title').innerText = d.title_zh || d.full_title;
   document.getElementById('d-title-en').innerText = d.title_zh ? d.full_title : '';
+  document.getElementById('d-edge-mode-box').style.display = 'flex';
   document.getElementById('d-meta-box').style.display = 'block';
   document.getElementById('d-abs-container').style.display = 'block';
   document.getElementById('d-author').innerText = d.author || '-';
@@ -105714,6 +105769,7 @@ function showDetail(d) {
 }
 
 function closeDetail() {
+  document.getElementById('d-edge-mode-box').style.display = 'none';
   document.getElementById('d-meta-box').style.display = 'none';
   document.getElementById('d-abs-container').style.display = 'none';
   document.getElementById('d-title').innerText = '等待观测指令...';
@@ -105735,7 +105791,6 @@ function toggleCharts() {
       setTimeout(() => { if(yChart) yChart.resize(); if(cChart) cChart.resize(); }, 350);
   }
 }
-
 function initCharts() {
     const yearSet = new Set();
     nodes.forEach(n => { if(n.year > 1900) yearSet.add(n.year); });
