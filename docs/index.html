@@ -98648,7 +98648,7 @@ categories.forEach((c, i) => {
 
 // 【星云旋臂引擎】：顶会高引凝聚在中心，尘埃顺着圆周轨道舒展飘散，形成漂亮弧线
 const simulation = d3.forceSimulation(nodes)
-  \.force("link", d3.forceLink(allEdges).id(d => d.id).distance(80).strength(0.015)) // 连线拉力降到极弱，允许彻底拉长
+  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(80).strength(0.015)) // 连线拉力降到极弱，允许彻底拉长
   .force("charge", d3.forceManyBody().strength(-70).distanceMax(400)) // 局部斥力降到极弱，彻底消除“硬皮球”块状感
   .force("center", d3.forceCenter(width / 2, height / 2))
   .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
