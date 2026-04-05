@@ -98660,27 +98660,27 @@ categories.forEach((c, i) => {
 
 // 【星云旋臂引擎】：顶会高引凝聚在中心，尘埃顺着圆周轨道舒展飘散，形成漂亮弧线
 const simulation = d3.forceSimulation(nodes)
-  .force("link", d3.forceLink(allEdges).id(d => d.id).distance(80).strength(0.015)) // 连线拉力降到极弱，允许彻底拉长
-  .force("charge", d3.forceManyBody().strength(-70).distanceMax(400)) // 局部斥力降到极弱，彻底消除“硬皮球”块状感
+  \.force("link", d3.forceLink(allEdges).id(d => d.id).distance(100).strength(0.01)) // 极弱连线
+  .force("charge", d3.forceManyBody().strength(-20).distanceMax(400)) // 彻底粉碎球状斥力，降低为极弱的-20
   .force("center", d3.forceCenter(width / 2, height / 2))
-  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(2))
+  .force("collision", d3.forceCollide().radius(d => d.collideR).iterations(3))
   .force("x", d3.forceX(d => {
       const cat = catCenters[d.primary_category];
       if(!cat) return width/2;
       let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-            // 【黄金比例弧形】：偏角调整到 1.2 弧度(85度)，尾迹优雅但不串台；离心半径放宽到 50px
-      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 0.75;
-      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 40;
+      // 【极致星轨】：极其宽松的抛洒跑道（1.8弧度），以及极其舒展的厚度（180px）
+      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.4)) * 1.8;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 180;
       return width/2 + Math.cos(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
-  }).strength(0.08)) // 增强坐标顺从度，逼迫它们站成一排弧线
+  }).strength(0.045)) // 极弱向心力
   .force("y", d3.forceY(d => {
       const cat = catCenters[d.primary_category];
       if(!cat) return height/2;
       let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-            let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 1.5;
-      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 80;
+      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.4)) * 1.8;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 180;
       return height/2 + Math.sin(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
-  }).strength(0.08))
+  }).strength(0.045))
   .stop();
 
 const term2 = document.getElementById('term-2');
