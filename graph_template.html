@@ -310,17 +310,17 @@ const simulation = d3.forceSimulation(nodes)
       const cat = catCenters[d.primary_category];
       if(!cat) return width/2;
       let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-      // 【极致扁长弧形】：偏角飙升到 2.8 弧度(160度)，尾迹极其漫长；离心半径被死死压缩到仅仅 40px，强迫形成细长带状
-      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 2.8;
-      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 40;
+            // 【黄金比例弧形】：偏角调整到 1.5 弧度(85度)，尾迹优雅但不串台；离心半径放宽到 80px，保持饱满感
+      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 1.5;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 80;
       return width/2 + Math.cos(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
   }).strength(0.08)) // 增强坐标顺从度，逼迫它们站成一排弧线
   .force("y", d3.forceY(d => {
       const cat = catCenters[d.primary_category];
       if(!cat) return height/2;
       let citeRatio = Math.min((d.citations || 0) / maxCites, 1.0);
-      let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 2.8;
-      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 40;
+            let angleOffset = ((d.id * 137) % 100 / 50 - 1) * (1.0 - Math.pow(citeRatio, 0.3)) * 1.5;
+      let rOffset = ((d.id * 93) % 100 / 50 - 1) * (1.0 - citeRatio) * 80;
       return height/2 + Math.sin(cat.baseAngle + angleOffset) * (cat.baseR + rOffset);
   }).strength(0.08))
   .stop();
