@@ -98525,18 +98525,29 @@ const catMap = new Map(categories.map(c => [c.cat_id, c]));
 // 【修复】：缩小最顶端巨星的尺寸，使整体分布更柔和。基础从 3 改为 3.5，最大不超过 16
 const maxCites = d3.max(nodes, d => d.citations || 0) || 1;
 nodes.forEach(n => {
-    n.visualCites = n.citations || 0;
-    // 正常计算原始半径
-    n.r = 3.5 + 13.0 * Math.pow(n.visualCites / maxCites, 0.35);
+    // 【重构法则】：评级（Tier）绝对优先，引用为辅，且全局最大体积锁定为原本的 40% (即 6.6)
+    let baseR = 1.5, maxBonus = 0.5;
     
-    // 【降维打击跨界噪声】：如果不是顶会且引用畸高，说明是跨界抓取错误（如地震射线追踪）。
-    // 强行把它们的体积锁死在基础尘埃大小，消除它们的巨大排斥力和边缘弹射效应。
-    if (n.tier !== 'S' && n.tier !== 'A') {
-        n.visualCites = Math.min(n.visualCites, 30);
-        n.r = 3.5 + 13.0 * Math.pow(n.visualCites / maxCites, 0.35);
+    if (n.tier === 'S') {
+        baseR = 4.5;
+        maxBonus = 2.1; // 最高半径 = 6.6
+    } else if (n.tier === 'A') {
+        baseR = 3.5;
+        maxBonus = 1.5; // 最高半径 = 5.0
+    } else if (n.tier === 'B') {
+        baseR = 2.5;
+        maxBonus = 1.0; // 最高半径 = 3.5
+    } else {
+        baseR = 1.5;
+        maxBonus = 0.5; // 尘埃级，最高半径 = 2.0
     }
     
-    n.collideR = n.r + 10;
+    let citeRatio = Math.min((n.citations || 0) / maxCites, 1.0);
+    // 使用 0.5 次方让内部差异更平滑
+    n.r = baseR + maxBonus * Math.pow(citeRatio, 0.5);
+    
+    // 缩小碰撞半径，让整体星空更加致密、具有暗物质云雾感
+    n.collideR = n.r + 6;
 });
 
 let currentFilterCat = 'Rendering';
@@ -98823,7 +98834,9 @@ function render() {
   }
 
   nodes.forEach(n => {
-      let alpha = 0.25 + 0.55 * ((n.visualCites || 0) / maxCites);
+      // 发光度（Alpha）同样遵循评级第一阶级法则
+      let baseAlpha = n.tier === 'S' ? 0.7 : (n.tier === 'A' ? 0.5 : (n.tier === 'B' ? 0.3 : 0.15));
+      let alpha = baseAlpha + 0.3 * ((n.citations || 0) / maxCites);
       if (selectedNode) alpha = relatedNodes.has(n.id) ? 1.0 : 0.05;
       
       ctx.beginPath();
